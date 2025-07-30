@@ -34,7 +34,7 @@ const FormSelect = ({ label, name, value, onChange, children, className = '' }) 
 );
 
 // Komponen formulir utama
-const PendaftaranAwalView = () => {
+const PendaftaranAwalView = ({ setActiveView, refetchUserData }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         namaLengkap: '',
@@ -107,12 +107,15 @@ const PendaftaranAwalView = () => {
                 throw new Error(data.message || 'Gagal menyimpan data.');
             }
 
-            setMessage('Data berhasil disimpan! Halaman akan dimuat ulang.');
-            setTimeout(() => window.location.reload(), 2000);
+            setMessage('Data berhasil disimpan! Anda akan diarahkan ke halaman selanjutnya.');
+            
+            setTimeout(() => {
+                refetchUserData();
+                setActiveView('konfirmasi-pembayaran');
+            }, 1500);
 
         } catch (err) {
             setError(err.message);
-        } finally {
             setIsLoading(false);
         }
     };
@@ -126,7 +129,6 @@ const PendaftaranAwalView = () => {
         </button>
     );
     
-    // FUNGSI YANG HILANG SEBELUMNYA
     const renderStepContent = () => {
         switch (step) {
             case 1: // Biodata
@@ -199,7 +201,6 @@ const PendaftaranAwalView = () => {
         }
     };
 
-
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
             <div className="flex justify-center items-center gap-4 mb-8 pb-4 border-b">
@@ -207,14 +208,11 @@ const PendaftaranAwalView = () => {
                 <StepButton title="Asal Sekolah" active={step === 2} />
                 <StepButton title="Pilihan Program Studi" active={step === 3} />
             </div>
-
             <div className="mb-8">
                 {renderStepContent()}
             </div>
-            
             {message && <p className="text-center text-green-600 mb-4">{message}</p>}
             {error && <p className="text-center text-red-600 mb-4">{error}</p>}
-
             <div className="flex justify-between">
                 <button onClick={prevStep} disabled={step === 1} className="bg-gray-300 text-gray-800 font-bold py-2 px-8 rounded-lg hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed">
                     Sebelumnya

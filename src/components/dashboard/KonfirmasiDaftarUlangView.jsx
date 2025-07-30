@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FaWhatsapp, FaCalendarAlt, FaPaperclip } from 'react-icons/fa';
 
-const KonfirmasiDaftarUlangView = () => {
+const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData }) => {
     const [file, setFile] = useState(null);
     const [fileName, setFileName] = useState('Choose file...');
+    const [sppChoice, setSppChoice] = useState('');
     const [formData, setFormData] = useState({
-        keterangan: 'Pembayaran daftar ulang',
+        keterangan: '',
         namaPengirim: '',
         nominalTransfer: '',
         tanggalTransfer: '',
@@ -20,11 +21,13 @@ const KonfirmasiDaftarUlangView = () => {
             const token = localStorage.getItem('authToken');
             try {
                 const response = await fetch('http://127.0.0.1:8000/api/user', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Cache-Control': 'no-cache'
+                    }
                 });
                 const data = await response.json();
                 setUserProgress(data);
-                // Set nama user di keterangan
                 if (data.name) {
                     setFormData(prev => ({ ...prev, keterangan: `Pembayaran daftar ulang ${data.name}`}));
                 }
@@ -78,9 +81,13 @@ const KonfirmasiDaftarUlangView = () => {
                 body: dataToSend,
             });
             const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
-            setMessage('Konfirmasi berhasil! Halaman akan dimuat ulang.');
-            setTimeout(() => window.location.reload(), 2000);
+            if (!response.ok) throw new Error(result.message || 'Gagal mengirim data.');
+            
+            setMessage('Konfirmasi berhasil! Memuat status terbaru...');
+            setTimeout(() => {
+                if (refetchUserData) refetchUserData();
+            }, 1500);
+
         } catch (err) {
             setError(err.message);
         } finally {
@@ -92,43 +99,84 @@ const KonfirmasiDaftarUlangView = () => {
         return <div className="text-center p-8">Memuat data...</div>;
     }
     
-    // Tampilan jika sudah lunas
     if (userProgress.pembayaran_daful_status === 'Pembayaran Sudah Dikonfirmasi') {
         return (
              <div className="bg-white p-8 rounded-lg shadow-md text-center">
-                <h1 className="text-2xl font-bold text-blue-600 mb-2">Informasi Pembayaran Daftar Ulang</h1>
-                <p className="text-xl font-bold text-green-500 mb-2">LUNAS</p>
-                <p className="text-gray-500 text-sm">Terima kasih, pembayaran Daftar Ulang Anda telah kami verifikasi.</p>
-                <div className="mt-6 pt-6 border-t">
-                    <p>File yang telah Anda upload :</p>
-                    <a href={`http://127.0.0.1:8000/storage/${userProgress.bukti_daful_path}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
-                        {userProgress.bukti_daful_path.split('/').pop()}
-                    </a>
-                 </div>
+                <p className="bg-green-100 text-green-700 font-semibold py-2 px-4 rounded-md inline-block">File telah diverifikasi oleh admin</p>
+                <div className="mt-6 text-gray-600 text-left space-y-2 max-w-lg mx-auto">
+                    <p>Terima kasih sudah melakukan konfirmasi pembayaran Daftar Ulang. Selanjutnya kami akan melakukan verifikasi pembayaran yang telah anda lakukan. Silahkan tunggu notifikasi dari kami.</p>
+                    <p>Jika ada kendala, jangan ragu hubungi admin</p>
+                </div>
+                <button type="button" className="mt-6 bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 flex items-center gap-2 mx-auto">
+                    <FaWhatsapp /> WHATSAPP ADMIN PMB ITATS
+                </button>
             </div>
         );
     }
 
-    // Tampilan form konfirmasi
+    const biaya = {
+        dpp: 0,
+        daftarUlang: 300000,
+        kegiatanPendahuluan: 1350000,
+        spp: sppChoice === 'semester' ? 7020000 : (sppChoice === 'bulan' ? 1300000 : 0)
+    };
+    const totalPembayaran = biaya.dpp + biaya.daftarUlang + biaya.kegiatanPendahuluan + biaya.spp;
+
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
-            <div className="text-center">
-                <h1 className="text-2xl font-bold text-blue-600 mb-2">Informasi Pembayaran Daftar Ulang</h1>
-                {/* ... (Rincian biaya tetap sama) ... */}
+            <h1 className="text-2xl font-bold text-blue-600 mb-6 border-b pb-4">Informasi Pembayaran Daftar Ulang</h1>
+            
+            <div className="space-y-3 text-gray-700 mb-6">
+                <div className="flex justify-between items-center">
+                    <span>Dana Pengembangan Pendidikan (DPP) - Beasiswa 100%</span>
+                    <span className="font-semibold">Rp. {biaya.dpp.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span>Daftar Ulang</span>
+                    <span className="font-semibold">Rp. {biaya.daftarUlang.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <span>Kegiatan Pendahuluan *</span>
+                        <p className="text-xs text-gray-500">*Kegiatan Pendahuluan, Pengenalan Kampus, Tes TEFL, Tes TPA dan Atribut Almamater.</p>
+                    </div>
+                    <span className="font-semibold">Rp. {biaya.kegiatanPendahuluan.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span>SPP / Biaya Penyelenggaraan Pendidikan (BPP) * <span className="font-bold text-blue-600">Opsional</span></span>
+                    <select value={sppChoice} onChange={(e) => setSppChoice(e.target.value)} className="border rounded-md px-2 py-1">
+                        <option value="">-- Pilih Pembayaran SPP --</option>
+                        <option value="bulan">Per Bulan (Rp 1.300.000)</option>
+                        <option value="semester">Per Semester (Rp 7.020.000)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className="flex justify-between items-center border-t pt-4 mt-4">
+                <span className="text-xl font-bold text-gray-800">Total Pembayaran</span>
+                <span className="text-2xl font-bold text-red-600">Rp. {totalPembayaran.toLocaleString('id-ID')}</span>
             </div>
             
+            <div className="mt-8 text-center bg-gray-50 p-4 rounded-lg">
+                <p className="font-semibold">Pembayaran dapat dilakukan melalui :</p>
+                <p className="text-gray-600">Loket Pendaftaran ITATS</p>
+                <p className="font-bold">atau</p>
+                <p className="text-gray-600">Transfer ke Bank Syariah Indonesia (BSI) Atas Nama ITATS</p>
+                <p className="text-lg font-bold">Nomor rekening: 799-799-7934</p>
+            </div>
+
             <form onSubmit={handleSubmit} className="mt-8 pt-6 border-t">
                 {message && <p className="text-center text-green-600 mb-4">{message}</p>}
                 {error && <p className="text-center text-red-600 mb-4">{error}</p>}
 
-                {/* ... (Input form tetap sama) ... */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Upload Scan Bukti Pembayaran</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1"><FaPaperclip className="inline-block mr-1" />Upload Scan Bukti Pembayaran</label>
                     <div className="flex items-center border rounded-lg">
                         <span className="text-gray-500 px-3 py-2 flex-grow">{fileName}</span>
-                        <label htmlFor="bukti-daful" className="cursor-pointer bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-r-lg">Browse</label>
+                        <label htmlFor="bukti-daful" className="cursor-pointer bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-r-lg hover:bg-gray-300">Browse</label>
                         <input id="bukti-daful" type="file" className="hidden" onChange={handleFileChange} />
                     </div>
+                    <p className="text-red-600 text-xs mt-1">* Anda bisa mengunggah 2 file</p>
                 </div>
 
                 <div className="mb-6">
@@ -137,9 +185,21 @@ const KonfirmasiDaftarUlangView = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <input type="text" name="namaPengirim" placeholder="Nama Pengirim" value={formData.namaPengirim} onChange={handleInputChange} required className="w-full px-4 py-2 border rounded-lg" />
-                    <input type="number" name="nominalTransfer" placeholder="Nominal Transfer" value={formData.nominalTransfer} onChange={handleInputChange} required className="w-full px-4 py-2 border rounded-lg" />
-                    <input type="date" name="tanggalTransfer" value={formData.tanggalTransfer} onChange={handleInputChange} required className="w-full px-4 py-2 border rounded-lg" />
+                    <div>
+                        <label htmlFor="namaPengirim" className="block text-sm font-medium text-gray-700 mb-1">Nama Pengirim</label>
+                        <input type="text" id="namaPengirim" name="namaPengirim" value={formData.namaPengirim} onChange={handleInputChange} required className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                    <div>
+                        <label htmlFor="nominalTransfer" className="block text-sm font-medium text-gray-700 mb-1">Nominal Transfer</label>
+                        <input type="number" id="nominalTransfer" name="nominalTransfer" value={formData.nominalTransfer} onChange={handleInputChange} required className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                    <div>
+                        <label htmlFor="tanggalTransfer" className="block text-sm font-medium text-gray-700 mb-1">Tanggal Transfer</label>
+                        <div className="relative">
+                            <input type="date" id="tanggalTransfer" name="tanggalTransfer" value={formData.tanggalTransfer} onChange={handleInputChange} required className="w-full px-4 py-2 border rounded-lg" />
+                            <FaCalendarAlt className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        </div>
+                    </div>
                 </div>
                 
                 <div className="text-center mb-8">
@@ -147,8 +207,6 @@ const KonfirmasiDaftarUlangView = () => {
                         {isLoading ? 'Mengirim...' : 'Kirim Konfirmasi'}
                     </button>
                 </div>
-
-                {/* ... (Kontak admin tetap sama) ... */}
             </form>
         </div>
     );

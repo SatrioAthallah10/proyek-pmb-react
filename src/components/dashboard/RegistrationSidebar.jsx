@@ -1,36 +1,24 @@
 import React, { useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 
-/**
- * Komponen Sidebar yang menampilkan alur pendaftaran di Dashboard.
- */
 const RegistrationSidebar = ({ timelineSteps = [], setActiveView }) => {
-    // State untuk melacak item mana yang sedang di-hover
     const [hoveredStep, setHoveredStep] = useState(null);
 
-    // Fungsi untuk menangani klik pada item sidebar
     const handleClick = (step) => {
         if (step.title === 'Formulir Pendaftaran') {
             setActiveView('pendaftaran-awal');
-        }
-        
-        if (step.title === 'Pembayaran Form Daftar') {
+        } else if (step.title === 'Pembayaran Form Daftar') {
             setActiveView('konfirmasi-pembayaran');
-        }
-        
-        if (step.title === 'Tes Seleksi PMB ITATS') {
-            setActiveView('hasil-tes');
-        }
-
-        if (step.title === 'Pembayaran Daftar Ulang') {
+        } else if (step.title === 'Tes Seleksi PMB ITATS') {
+            // --- LOGIKA BARU ---
+            // Jika belum selesai (lulus), arahkan ke halaman tes.
+            // Jika sudah selesai, arahkan ke hasil tes.
+            setActiveView(step.completed ? 'hasil-tes' : 'tes-seleksi');
+        } else if (step.title === 'Pembayaran Daftar Ulang') {
             setActiveView('konfirmasi-daftar-ulang');
-        }
-        
-        if (step.title === 'Pengisian Data Diri') {
+        } else if (step.title === 'Pengisian Data Diri') {
             setActiveView('daftar-ulang');
-        }
-
-        if (step.title === 'Penerbitan NPM' && step.completed) {
+        } else if (step.title === 'Penerbitan NPM' && step.completed) {
             setActiveView('npm');
         }
     };
@@ -40,19 +28,16 @@ const RegistrationSidebar = ({ timelineSteps = [], setActiveView }) => {
             <h4 className="text-lg font-bold mb-4">Alur Pendaftaran</h4>
             <div className="relative">
                 {timelineSteps.map((step, index) => {
-                    // Tentukan item mana yang BISA DIKLIK
-                    const isClickable = 
-                        step.title === 'Formulir Pendaftaran' ||
-                        step.title === 'Pembayaran Form Daftar' ||
-                        step.title === 'Tes Seleksi PMB ITATS' ||
-                        step.title === 'Pembayaran Daftar Ulang' ||
-                        step.title === 'Pengisian Data Diri' ||
-                        (step.title === 'Penerbitan NPM' && step.completed);
-                    
-                    // Tentukan item mana yang punya EFEK HOVER
-                    const hasHoverEffect = isClickable || step.title === 'Status Administrasi';
+                    const isClickable = [
+                        'Formulir Pendaftaran',
+                        'Pembayaran Form Daftar',
+                        'Tes Seleksi PMB ITATS',
+                        'Pembayaran Daftar Ulang',
+                        'Pengisian Data Diri',
+                    ].includes(step.title) || (step.title === 'Penerbitan NPM' && step.completed);
 
-                    // Tentukan style dinamis (padding & margin penyebab masalah sudah dihapus)
+                    const hasHoverEffect = isClickable || step.title === 'Status Administrasi';
+                    
                     const itemClass = `flex items-start mb-6 pl-8 relative transition-colors duration-200 ${
                         isClickable ? 'cursor-pointer' : 'cursor-default'
                     } ${
@@ -63,29 +48,16 @@ const RegistrationSidebar = ({ timelineSteps = [], setActiveView }) => {
                         <div
                             key={index}
                             className={itemClass}
-                            onMouseEnter={() => {
-                                if (hasHoverEffect) {
-                                    setHoveredStep(index);
-                                }
-                            }}
-                            onMouseLeave={() => {
-                                setHoveredStep(null);
-                            }}
-                            onClick={() => {
-                                if(isClickable) {
-                                    handleClick(step)
-                                }
-                            }}
+                            onMouseEnter={() => hasHoverEffect && setHoveredStep(index)}
+                            onMouseLeave={() => setHoveredStep(null)}
+                            onClick={() => isClickable && handleClick(step)}
                         >
-                            {/* Garis vertikal timeline */}
                             {index < timelineSteps.length - 1 && <div className="absolute left-3 top-5 h-full w-0.5 bg-gray-200"></div>}
                             
-                            {/* Ikon centang */}
                             <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center ${step.completed ? 'bg-green-500' : 'bg-gray-300'}`}>
                                 <FaCheck className="text-white h-3 w-3" />
                             </div>
                             
-                            {/* Konten timeline */}
                             <div>
                                 <h5 className="font-semibold">{step.title}</h5>
                                 <p className="text-sm text-gray-500">{step.status}</p>
