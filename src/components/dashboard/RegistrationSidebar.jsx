@@ -10,9 +10,6 @@ const RegistrationSidebar = ({ timelineSteps = [], setActiveView }) => {
         } else if (step.title === 'Pembayaran Form Daftar') {
             setActiveView('konfirmasi-pembayaran');
         } else if (step.title === 'Tes Seleksi PMB ITATS') {
-            // --- LOGIKA BARU ---
-            // Jika belum selesai (lulus), arahkan ke halaman tes.
-            // Jika sudah selesai, arahkan ke hasil tes.
             setActiveView(step.completed ? 'hasil-tes' : 'tes-seleksi');
         } else if (step.title === 'Pembayaran Daftar Ulang') {
             setActiveView('konfirmasi-daftar-ulang');
@@ -54,8 +51,9 @@ const RegistrationSidebar = ({ timelineSteps = [], setActiveView }) => {
                         >
                             {index < timelineSteps.length - 1 && <div className="absolute left-3 top-5 h-full w-0.5 bg-gray-200"></div>}
                             
+                            {/* --- PERBAIKAN FINAL --- */}
                             <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center ${step.completed ? 'bg-green-500' : 'bg-gray-300'}`}>
-                                <FaCheck className="text-white h-3 w-3" />
+                                <FaCheck className={`h-3 w-3 ${step.completed ? 'text-white' : 'text-gray-500'}`} />
                             </div>
                             
                             <div>

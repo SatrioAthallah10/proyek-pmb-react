@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa';
 
-// ... (Komponen form lainnya tetap sama)
+// Komponen-komponen form yang bisa digunakan kembali
 const FormInputWithIcon = ({ icon, label, name, type, value, onChange, placeholder }) => (
     <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2">{label}</label>
@@ -52,9 +52,6 @@ const FormTextarea = ({ label, name, value, onChange, placeholder }) => (
 );
 
 
-/**
- * Komponen untuk halaman registrasi khusus jalur RPL.
- */
 const RegisterRplPage = ({ setCurrentPage }) => {
     const [formData, setFormData] = useState({
         nama: '',
@@ -62,7 +59,7 @@ const RegisterRplPage = ({ setCurrentPage }) => {
         alamat: '',
         jenisKelamin: '',
         nomorTelepon: '',
-        jalur: 'rpl', // <-- PERBAIKAN: Nilai jalur diatur di sini
+        jalur: 'rpl', // Nilai ini akan dikirim ke backend
         sumberPendaftaran: '',
         password: '',
         konfirmPassword: '',
@@ -111,14 +108,13 @@ const RegisterRplPage = ({ setCurrentPage }) => {
         setIsLoading(true);
 
         try {
-            // PERBAIKAN: Mengirim ke endpoint /api/register
             const response = await fetch('http://127.0.0.1:8000/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                // PERBAIKAN: Mengirim seluruh formData, termasuk 'jalur'
+                // PERBAIKAN: Mengirim seluruh objek formData, termasuk 'jalur: "rpl"'
                 body: JSON.stringify(formData),
             });
 
@@ -134,7 +130,7 @@ const RegisterRplPage = ({ setCurrentPage }) => {
             setSuccessMessage('Registrasi RPL berhasil! Silakan login.');
             setFormData({
                 nama: '', email: '', alamat: '', jenisKelamin: '', nomorTelepon: '',
-                jalur: 'RPL', // Reset ke RPL
+                jalur: 'rpl',
                 sumberPendaftaran: '', password: '', konfirmPassword: '', agreePolicy: false,
             });
 
@@ -164,7 +160,6 @@ const RegisterRplPage = ({ setCurrentPage }) => {
                         {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
                         {successMessage && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">{successMessage}</div>}
                         
-                        {/* ... sisa form tetap sama ... */}
                         <div className="mb-6 p-4 border rounded-lg">
                             <label className="block text-gray-700 text-sm font-bold mb-2">Scan KTP untuk mempermudah pendaftaran</label>
                             <div className="flex items-center gap-4">

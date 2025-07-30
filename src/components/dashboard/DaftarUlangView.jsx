@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-// Komponen-komponen utilitas untuk form
+// ... (Komponen utilitas FormInput, FormSelect, FormTextarea tetap sama)
 const FormInput = ({ label, className = '', ...props }) => (
     <div className={className}>
         <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
@@ -25,8 +25,8 @@ const FormTextarea = ({ label, className = '', ...props }) => (
     </div>
 );
 
-// Komponen formulir utama
-const DaftarUlangView = () => {
+
+const DaftarUlangView = ({ isRpl = false }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({});
     const [userProgress, setUserProgress] = useState(null);
@@ -38,8 +38,9 @@ const DaftarUlangView = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             const token = localStorage.getItem('authToken');
+            const apiUrl = isRpl ? 'http://127.0.0.1:8000/api/rpl/user' : 'http://127.0.0.1:8000/api/user';
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/user', {
+                const response = await fetch(apiUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!response.ok) throw new Error('Sesi tidak valid, silakan login kembali.');
@@ -51,7 +52,7 @@ const DaftarUlangView = () => {
             }
         };
         fetchUserData();
-    }, []);
+    }, [isRpl]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -64,8 +65,12 @@ const DaftarUlangView = () => {
         setError('');
         const token = localStorage.getItem('authToken');
 
+        const apiUrl = isRpl 
+            ? 'http://127.0.0.1:8000/api/rpl/submit-daftar-ulang' 
+            : 'http://127.0.0.1:8000/api/submit-daftar-ulang';
+
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/submit-daftar-ulang', {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -90,6 +95,7 @@ const DaftarUlangView = () => {
     const steps = ['Prodi', 'Data Diri', 'Asal Sekolah', 'Data Wali'];
 
     const renderStepContent = () => {
+        // ... (Fungsi renderStepContent tidak berubah)
         switch (step) {
             case 1:
                 return (
@@ -153,7 +159,7 @@ const DaftarUlangView = () => {
             default: return null;
         }
     };
-
+    
     if (!userProgress) {
         return <div className="text-center p-8">Memuat data...</div>;
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-// Komponen-komponen utilitas untuk form
+// ... (Komponen FormInput dan FormSelect tetap sama)
 const FormInput = ({ label, type = 'text', name, value, onChange, placeholder, className = '', readOnly = false }) => (
     <div className={`mb-6 ${className}`}>
         <label htmlFor={name} className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
@@ -33,8 +33,9 @@ const FormSelect = ({ label, name, value, onChange, children, className = '' }) 
     </div>
 );
 
-// Komponen formulir utama
-const PendaftaranAwalView = ({ setActiveView, refetchUserData }) => {
+
+// DIUBAH: Menerima prop 'isRpl'
+const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         namaLengkap: '',
@@ -90,8 +91,13 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData }) => {
         setError('');
         const token = localStorage.getItem('authToken');
 
+        // DIUBAH: URL dinamis berdasarkan prop 'isRpl'
+        const apiUrl = isRpl 
+            ? 'http://127.0.0.1:8000/api/rpl/submit-pendaftaran-awal' 
+            : 'http://127.0.0.1:8000/api/submit-pendaftaran-awal';
+
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/submit-pendaftaran-awal', {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -129,6 +135,7 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData }) => {
         </button>
     );
     
+    // ... (renderStepContent dan JSX lainnya tetap sama)
     const renderStepContent = () => {
         switch (step) {
             case 1: // Biodata

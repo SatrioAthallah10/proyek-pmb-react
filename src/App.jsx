@@ -7,7 +7,6 @@ import DashboardRplPage from './pages/DashboardRplPage.jsx';
 import PublicLayout from './components/PublicLayout.jsx';
 import RegisterRplPage from './pages/RegisterRplPage.jsx';
 import RegisterMagisterPage from './pages/RegisterMagisterPage.jsx';
-// PERBAIKAN: Impor halaman baru
 import RegisterMagisterRplPage from './pages/RegisterMagisterRplPage.jsx';
 
 /**
@@ -24,9 +23,7 @@ export default function App() {
 
     const renderPage = () => {
         if (isLoggedIn && userData) {
-            console.log('Routing based on user data:', userData);
-
-            // Kita bisa menambahkan logika routing untuk magister di sini jika perlu
+            // Logika routing yang sudah diperbaiki
             if (userData.jalur_pendaftaran === 'rpl' || userData.jalur_pendaftaran === 'magister-rpl') {
                 return <DashboardRplPage setIsLoggedIn={setIsLoggedIn} setCurrentPage={setCurrentPage} />;
             } else {
@@ -47,7 +44,6 @@ export default function App() {
                 return <RegisterRplPage setCurrentPage={setCurrentPage} />;
             case 'register-magister':
                 return <RegisterMagisterPage setCurrentPage={setCurrentPage} />;
-            // PERBAIKAN: Tambahkan case untuk halaman baru
             case 'register-magister-rpl':
                 return <RegisterMagisterRplPage setCurrentPage={setCurrentPage} />;
             case 'home':

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaWhatsapp, FaCalendarAlt, FaPaperclip } from 'react-icons/fa';
 
-const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData }) => {
+const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = false }) => {
     const [file, setFile] = useState(null);
     const [fileName, setFileName] = useState('Choose file...');
     const [sppChoice, setSppChoice] = useState('');
@@ -19,8 +19,9 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData }) => {
     useEffect(() => {
         const fetchUserData = async () => {
             const token = localStorage.getItem('authToken');
+            const apiUrl = isRpl ? 'http://127.0.0.1:8000/api/rpl/user' : 'http://127.0.0.1:8000/api/user';
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/user', {
+                const response = await fetch(apiUrl, {
                     headers: { 
                         'Authorization': `Bearer ${token}`,
                         'Cache-Control': 'no-cache'
@@ -36,7 +37,7 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData }) => {
             }
         };
         fetchUserData();
-    }, []);
+    }, [isRpl]);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -71,8 +72,12 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData }) => {
         dataToSend.append('nominalTransfer', formData.nominalTransfer);
         dataToSend.append('tanggalTransfer', formData.tanggalTransfer);
 
+        const apiUrl = isRpl 
+            ? 'http://127.0.0.1:8000/api/rpl/submit-konfirmasi-daful' 
+            : 'http://127.0.0.1:8000/api/submit-konfirmasi-daful';
+
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/submit-konfirmasi-daful', {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -124,6 +129,7 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData }) => {
 
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
+            {/* ... Sisa JSX form tidak berubah ... */}
             <h1 className="text-2xl font-bold text-blue-600 mb-6 border-b pb-4">Informasi Pembayaran Daftar Ulang</h1>
             
             <div className="space-y-3 text-gray-700 mb-6">
