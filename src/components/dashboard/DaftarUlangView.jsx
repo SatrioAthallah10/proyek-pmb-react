@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-// Komponen-komponen utilitas untuk form
+// ... (Komponen utilitas FormInput, FormSelect, FormTextarea tetap sama)
 const FormInput = ({ label, className = '', ...props }) => (
     <div className={className}>
         <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
@@ -25,8 +25,8 @@ const FormTextarea = ({ label, className = '', ...props }) => (
     </div>
 );
 
-// Komponen formulir utama
-const DaftarUlangView = ({ isRpl = false, isMagister = false }) => {
+
+const DaftarUlangView = ({ isRpl = false }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({});
     const [userProgress, setUserProgress] = useState(null);
@@ -38,13 +38,7 @@ const DaftarUlangView = ({ isRpl = false, isMagister = false }) => {
     useEffect(() => {
         const fetchUserData = async () => {
             const token = localStorage.getItem('authToken');
-            let apiUrl = 'http://127.0.0.1:8000/api/user';
-            if (isRpl) {
-                apiUrl = 'http://127.0.0.1:8000/api/rpl/user';
-            } else if (isMagister) {
-                apiUrl = 'http://127.0.0.1:8000/api/magister/user';
-            }
-
+            const apiUrl = isRpl ? 'http://127.0.0.1:8000/api/rpl/user' : 'http://127.0.0.1:8000/api/user';
             try {
                 const response = await fetch(apiUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -58,7 +52,7 @@ const DaftarUlangView = ({ isRpl = false, isMagister = false }) => {
             }
         };
         fetchUserData();
-    }, [isRpl, isMagister]);
+    }, [isRpl]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -71,12 +65,9 @@ const DaftarUlangView = ({ isRpl = false, isMagister = false }) => {
         setError('');
         const token = localStorage.getItem('authToken');
 
-        let apiUrl = 'http://127.0.0.1:8000/api/submit-daftar-ulang';
-        if (isRpl) {
-            apiUrl = 'http://127.0.0.1:8000/api/rpl/submit-daftar-ulang';
-        } else if (isMagister) {
-            apiUrl = 'http://127.0.0.1:8000/api/magister/submit-daftar-ulang';
-        }
+        const apiUrl = isRpl 
+            ? 'http://127.0.0.1:8000/api/rpl/submit-daftar-ulang' 
+            : 'http://127.0.0.1:8000/api/submit-daftar-ulang';
 
         try {
             const response = await fetch(apiUrl, {
@@ -104,6 +95,7 @@ const DaftarUlangView = ({ isRpl = false, isMagister = false }) => {
     const steps = ['Prodi', 'Data Diri', 'Asal Sekolah', 'Data Wali'];
 
     const renderStepContent = () => {
+        // ... (Fungsi renderStepContent tidak berubah)
         switch (step) {
             case 1:
                 return (

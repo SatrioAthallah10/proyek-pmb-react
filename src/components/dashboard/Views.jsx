@@ -6,8 +6,8 @@ import {
 } from 'react-icons/fa';
 import { bankSoalTes } from '../../data/mockData.js';
 
-// --- Komponen Kartu Alur Pendaftaran ---
-export const FlowCard = ({ icon, title, description, arrow, action, onClick }) => {
+// ... (Komponen FlowCard, DataDiriView, dan TesSeleksiView tetap sama)
+const FlowCard = ({ icon, title, description, arrow, action, onClick }) => {
     const ArrowIcon = () => {
         switch (arrow) {
             case 'right': return <FaArrowRight className="text-gray-400 absolute top-1/2 -right-6 transform -translate-y-1/2" />;
@@ -48,7 +48,6 @@ export const FlowCard = ({ icon, title, description, arrow, action, onClick }) =
 };
 
 
-// --- View Halaman Utama Dasbor ---
 export const DataDiriView = () => {
     const flowData = [
         { title: 'HTTPS://PMB.ITATS.AC.ID/', arrow: 'right' },
@@ -78,7 +77,6 @@ export const DataDiriView = () => {
 };
 
 
-// --- View Halaman Persiapan Tes ---
 export const TesSeleksiView = ({ setActiveView }) => {
     const userData = JSON.parse(localStorage.getItem('userData'));
     return (
@@ -108,12 +106,11 @@ export const TesSeleksiView = ({ setActiveView }) => {
 };
 
 
-// --- View Halaman Pengerjaan Soal ---
-export const SoalTesView = ({ setActiveView, isRpl = false, isMagister = false }) => {
+export const SoalTesView = ({ setActiveView, isRpl = false }) => {
     const [questions, setQuestions] = useState([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState({});
-    const [timeLeft, setTimeLeft] = useState(1800); // 30 menit
+    const [timeLeft, setTimeLeft] = useState(1800);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -139,13 +136,10 @@ export const SoalTesView = ({ setActiveView, isRpl = false, isMagister = false }
         setIsSubmitting(true);
         setError('');
         const token = localStorage.getItem('authToken');
-        
-        let apiUrl = 'http://127.0.0.1:8000/api/submit-hasil-tes';
-        if (isRpl) {
-            apiUrl = 'http://127.0.0.1:8000/api/rpl/submit-hasil-tes';
-        } else if (isMagister) {
-            apiUrl = 'http://127.0.0.1:8000/api/magister/submit-hasil-tes';
-        }
+
+        const apiUrl = isRpl 
+            ? 'http://127.0.0.1:8000/api/rpl/submit-hasil-tes' 
+            : 'http://127.0.0.1:8000/api/submit-hasil-tes';
 
         try {
             const response = await fetch(apiUrl, {
@@ -205,7 +199,6 @@ export const SoalTesView = ({ setActiveView, isRpl = false, isMagister = false }
 };
 
 
-// --- View Hasil Tes (Dinamis) ---
 export const HasilTesView = () => {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -220,7 +213,6 @@ export const HasilTesView = () => {
                 return;
             }
             try {
-                // Note: This endpoint might need to be dynamic too if results are separated
                 const response = await fetch('http://127.0.0.1:8000/api/user', {
                     headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
                 });
@@ -275,7 +267,6 @@ export const HasilTesView = () => {
 };
 
 
-// --- View Halaman KTM ---
 export const KtmView = () => (
      <div className="bg-white p-6 rounded-lg shadow-md">
         <h1 className="text-3xl font-bold text-[#1a233a] mb-2">Upload KTM</h1>

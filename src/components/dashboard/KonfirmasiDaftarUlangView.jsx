@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaWhatsapp, FaCalendarAlt, FaPaperclip } from 'react-icons/fa';
 
-const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = false, isMagister = false }) => {
+const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = false }) => {
     const [file, setFile] = useState(null);
     const [fileName, setFileName] = useState('Choose file...');
     const [sppChoice, setSppChoice] = useState('');
@@ -19,13 +19,7 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = fal
     useEffect(() => {
         const fetchUserData = async () => {
             const token = localStorage.getItem('authToken');
-            let apiUrl = 'http://127.0.0.1:8000/api/user';
-            if (isRpl) {
-                apiUrl = 'http://127.0.0.1:8000/api/rpl/user';
-            } else if (isMagister) {
-                apiUrl = 'http://127.0.0.1:8000/api/magister/user';
-            }
-
+            const apiUrl = isRpl ? 'http://127.0.0.1:8000/api/rpl/user' : 'http://127.0.0.1:8000/api/user';
             try {
                 const response = await fetch(apiUrl, {
                     headers: { 
@@ -43,7 +37,7 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = fal
             }
         };
         fetchUserData();
-    }, [isRpl, isMagister]);
+    }, [isRpl]);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -78,12 +72,9 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = fal
         dataToSend.append('nominalTransfer', formData.nominalTransfer);
         dataToSend.append('tanggalTransfer', formData.tanggalTransfer);
 
-        let apiUrl = 'http://127.0.0.1:8000/api/submit-konfirmasi-daful';
-        if (isRpl) {
-            apiUrl = 'http://127.0.0.1:8000/api/rpl/submit-konfirmasi-daful';
-        } else if (isMagister) {
-            apiUrl = 'http://127.0.0.1:8000/api/magister/submit-konfirmasi-daful';
-        }
+        const apiUrl = isRpl 
+            ? 'http://127.0.0.1:8000/api/rpl/submit-konfirmasi-daful' 
+            : 'http://127.0.0.1:8000/api/submit-konfirmasi-daful';
 
         try {
             const response = await fetch(apiUrl, {
@@ -138,6 +129,7 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = fal
 
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
+            {/* ... Sisa JSX form tidak berubah ... */}
             <h1 className="text-2xl font-bold text-blue-600 mb-6 border-b pb-4">Informasi Pembayaran Daftar Ulang</h1>
             
             <div className="space-y-3 text-gray-700 mb-6">
