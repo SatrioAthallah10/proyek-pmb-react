@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaHashtag } from 'react-icons/fa';
 
 // Komponen-komponen form yang bisa digunakan kembali
 const FormInputWithIcon = ({ icon, label, name, type, value, onChange, placeholder }) => (
@@ -64,6 +64,9 @@ const RegisterPage = ({ setCurrentPage }) => {
         nomorTelepon: '',
         jalur: 'Reguler',
         sumberPendaftaran: '',
+        nomorBrosur: '', // <-- TAMBAHKAN STATE INI
+        namaPemberiRekomendasi: '', // <-- TAMBAHKAN STATE INI
+        nomorWaRekomendasi: '',   // <-- TAMBAHKAN STATE INI
         password: '',
         konfirmPassword: '',
         agreePolicy: false,
@@ -197,9 +200,318 @@ const RegisterPage = ({ setCurrentPage }) => {
                             <option value="">-- Mengenal ITATS dari ? --</option>
                             <option>Brosur</option>
                             <option>Pameran</option>
+                            <option>Sosialisasi/Kunjungan ITATS di Sekolah</option> 
                             <option>Instagram</option>
+                            <option>Facebook</option>
+                            <option>TikTok</option>
+                            <option>LinkedIn</option>
+                            <option>Youtube</option>
+                            <option>Whatsapp Blasting</option>
+                            <option>Website ITATS</option>
+                            <option>Guru BK</option>
+                            <option>Alumni ITATS</option>
+                            <option>Pameran yang diselenggarakan di ITATS</option>
+                            <option>Radio</option>
+                            <option>TV</option>
                             <option>Teman</option>
+                            <option>Tetangga/Saudara</option> {/* <-- TAMBAHKAN OPSI INI */}
+                            <option>Dosen ITATS</option> {/* <-- TAMBAHKAN OPSI INI */}
+                            <option>Mahasiswa ITATS</option> {/* <-- TAMBAHKAN OPSI INI */}
+                            <option>Brosur (DIGITAL)</option> {/* <-- TAMBAHKAN OPSI INI */}
+                            <option>Guru</option> {/* <-- TAMBAHKAN OPSI INI */}
+                            <option>Pengasuh Pondok Pesantren</option> {/* <-- TAMBAHKAN OPSI INI */}
+                            <option>Program Afirmasi Keluarga Wisudawan</option> {/* <-- TAMBAHKAN OPSI INI */}
+                            <option>Affiliate</option> {/* <-- TAMBAHKAN OPSI INI */}
                         </FormSelect>
+
+                        {/* === BLOK KODE BARU DIMULAI DI SINI === */}
+                        {formData.sumberPendaftaran === 'Brosur' && (
+                            <FormInputWithIcon 
+                                icon={<FaHashtag className="text-gray-400" />} 
+                                label="Nomor Brosur" 
+                                name="nomorBrosur" 
+                                type="text" 
+                                value={formData.nomorBrosur} 
+                                onChange={handleInputChange} 
+                                placeholder="Masukkan kode brosur..." 
+                            />
+                        )}
+                        {/* === BLOK KODE BARU SELESAI DI SINI === */}
+
+                        {/* === BLOK KODE BARU UNTUK GURU BK === */}
+                        {formData.sumberPendaftaran === 'Guru BK' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama guru BK..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK ALUMNI ITATS === */}
+                        {formData.sumberPendaftaran === 'Alumni ITATS' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama alumni..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK TEMAN === */}
+                        {formData.sumberPendaftaran === 'Teman' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama teman..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK TETANGGA/SAUDARA === */}
+                        {formData.sumberPendaftaran === 'Tetangga/Saudara' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama tetangga/saudara..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK DOSEN ITATS === */}
+                        {formData.sumberPendaftaran === 'Dosen ITATS' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama dosen..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK MAHASISWA ITATS === */}
+                        {formData.sumberPendaftaran === 'Mahasiswa ITATS' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama mahasiswa..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK BROSUR (DIGITAL) === */}
+                        {formData.sumberPendaftaran === 'Brosur (DIGITAL)' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama pemberi rekomendasi..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK GURU === */}
+                        {formData.sumberPendaftaran === 'Guru' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama guru..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK PENGASUH PONDOK PESANTREN === */}
+                        {formData.sumberPendaftaran === 'Pengasuh Pondok Pesantren' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama pengasuh..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK AFIRMASI KELUARGA WISUDAWAN === */}
+                        {formData.sumberPendaftaran === 'Program Afirmasi Keluarga Wisudawan' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama keluarga wisudawan..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
+
+                        {/* === BLOK KODE BARU UNTUK AFFILIATE === */}
+                        {formData.sumberPendaftaran === 'Affiliate' && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama affiliate..." 
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                />
+                            </>
+                        )}
+                        {/* === AKHIR BLOK KODE BARU === */}
 
                         {/* Password */}
                         <div className="mb-4">
