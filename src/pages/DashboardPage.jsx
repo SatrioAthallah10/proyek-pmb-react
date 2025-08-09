@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios'; // Menggunakan axios untuk konsistensi
 import DashboardHeader from '../components/dashboard/DashboardHeader.jsx';
 import DashboardNav from '../components/dashboard/DashboardNav.jsx';
 import RegistrationSidebar from '../components/dashboard/RegistrationSidebar.jsx';
@@ -9,67 +10,68 @@ import DaftarUlangView from '../components/dashboard/DaftarUlangView.jsx';
 import KonfirmasiDaftarUlangView from '../components/dashboard/KonfirmasiDaftarUlangView.jsx';
 import NPMView from '../components/dashboard/NPMView.jsx';
 
-const DashboardPage = ({ setIsLoggedIn, setCurrentPage }) => {
+// Menghapus prop yang tidak lagi digunakan oleh sistem routing baru
+const DashboardPage = () => {
     const [activeView, setActiveView] = useState('data-diri');
-    const [userData, setUserData] = useState(null);
+    const [dashboardData, setDashboardData] = useState(null); // State untuk menampung {user, timeline}
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const fetchUserData = useCallback(async () => {
+    // --- LOGIKA PENGAMBILAN DATA YANG DIPERBAIKI ---
+    const fetchStatus = useCallback(async () => {
         setLoading(true);
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token');
         if (!token) {
+            setError("Sesi tidak valid. Silakan login kembali.");
             setLoading(false);
             return;
         }
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/user', {
+            // Menggunakan endpoint yang benar
+            const response = await axios.get('http://localhost:8000/api/registration-status', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
-                    'Cache-Control': 'no-cache',
                 },
             });
-            if (!response.ok) throw new Error('Gagal mengambil data pengguna');
-            const data = await response.json();
-            setUserData(data);
-        } catch (error) {
-            console.error("Error fetching user data:", error);
+            setDashboardData(response.data); // Menyimpan seluruh objek {user, timeline}
+        } catch (err) {
+            console.error("Error fetching registration status:", err);
+            setError("Gagal memuat data dasbor. Silakan coba lagi.");
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchUserData();
-    }, [fetchUserData]);
+        fetchStatus();
+    }, [fetchStatus]);
 
-    if (loading || !userData) {
+    // Tampilan loading dan error Anda dipertahankan
+    if (loading) {
         return <div className="flex justify-center items-center min-h-screen bg-gray-100"><p>Memuat data dasbor...</p></div>;
     }
-
-    const timelineData = [
-        { title: 'Formulir Pendaftaran', status: userData.formulir_pendaftaran_status, completed: userData.formulir_pendaftaran_completed },
-        { title: 'Pembayaran Form Daftar', status: userData.pembayaran_form_status, completed: userData.pembayaran_form_completed },
-        { title: 'Status Administrasi', status: userData.administrasi_status, completed: userData.administrasi_completed },
-        { title: 'Tes Seleksi PMB ITATS', status: userData.tes_seleksi_status, completed: userData.tes_seleksi_completed },
-        { title: 'Pembayaran Daftar Ulang', status: userData.pembayaran_daful_status, completed: userData.pembayaran_daful_completed },
-        { title: 'Pengisian Data Diri', status: userData.pengisian_data_diri_status, completed: userData.pengisian_data_diri_completed },
-        { title: 'Penerbitan NPM', status: userData.npm_status, completed: userData.npm_completed },
-    ];
     
-    const isFormulirCompleted = userData.formulir_pendaftaran_completed;
-    const isPembayaranFormCompleted = userData.pembayaran_form_completed;
-    const isTesLulus = userData.tes_seleksi_completed;
-    const isPembayaranDafulCompleted = userData.pembayaran_daful_completed;
+    if (error || !dashboardData) {
+        return <div className="flex justify-center items-center min-h-screen bg-gray-100 text-red-600"><p>{error || "Data tidak dapat dimuat."}</p></div>;
+    }
 
+    // Memecah data dari state untuk digunakan di komponen Anda
+    const user = dashboardData.user;
+    const timelineData = dashboardData.timeline;
+
+    const isTesLulus = user?.tes_seleksi_completed;
+    const isPembayaranDafulCompleted = user?.pembayaran_daful_completed;
+
+    // --- SELURUH LOGIKA TAMPILAN ANDA TETAP SAMA ---
     const renderView = () => {
         switch (activeView) {
             case 'konfirmasi-pembayaran':
-                return <KonfirmasiPembayaranView userData={userData} refetchUserData={fetchUserData} />;
+                return <KonfirmasiPembayaranView userData={user} refetchUserData={fetchStatus} />;
             case 'pendaftaran-awal':
-                return <PendaftaranAwalView setActiveView={setActiveView} refetchUserData={fetchUserData} />;
+                return <PendaftaranAwalView setActiveView={setActiveView} refetchUserData={fetchStatus} />;
             case 'konfirmasi-daftar-ulang':
-                 if (isTesLulus) { return <KonfirmasiDaftarUlangView setActiveView={setActiveView} refetchUserData={fetchUserData} />; }
+                 if (isTesLulus) { return <KonfirmasiDaftarUlangView setActiveView={setActiveView} refetchUserData={fetchStatus} />; }
                  else { return <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus dinyatakan lulus Tes Seleksi terlebih dahulu.</p></div>; }
             case 'tes-seleksi':
                 return <TesSeleksiView setActiveView={setActiveView} />;
@@ -90,14 +92,15 @@ const DashboardPage = ({ setIsLoggedIn, setCurrentPage }) => {
         }
     };
 
+    // --- SELURUH STRUKTUR JSX ANDA TETAP SAMA ---
     return (
         <div className="bg-gray-100 min-h-screen">
-            <DashboardHeader setIsLoggedIn={setIsLoggedIn} setCurrentPage={setCurrentPage} />
+            <DashboardHeader user={user} />
             <DashboardNav 
                 activeView={activeView} 
                 setActiveView={setActiveView} 
-                isFormulirCompleted={isFormulirCompleted}
-                isPembayaranFormCompleted={isPembayaranFormCompleted}
+                isFormulirCompleted={user?.formulir_pendaftaran_completed}
+                isPembayaranFormCompleted={user?.pembayaran_form_completed}
                 isPembayaranDafulCompleted={isPembayaranDafulCompleted}
                 isTesLulus={isTesLulus}
             />

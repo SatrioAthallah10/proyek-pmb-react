@@ -1,64 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import HomePage from './pages/HomePage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import RegisterPage from './pages/RegisterPage.jsx';
-import DashboardPage from './pages/DashboardPage.jsx';
-import DashboardRplPage from './pages/DashboardRplPage.jsx';
-import PublicLayout from './components/PublicLayout.jsx';
-import RegisterRplPage from './pages/RegisterRplPage.jsx';
-import RegisterMagisterPage from './pages/RegisterMagisterPage.jsx';
-import RegisterMagisterRplPage from './pages/RegisterMagisterRplPage.jsx';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import RegisterRplPage from './pages/RegisterRplPage';
+import RegisterMagisterPage from './pages/RegisterMagisterPage';
+import RegisterMagisterRplPage from './pages/RegisterMagisterRplPage';
+import DashboardPage from './pages/DashboardPage';
+import DashboardRplPage from './pages/DashboardRplPage';
+import DashboardMagisterPage from './pages/DashboardMagisterPage';
 
-/**
- * Komponen utama aplikasi.
- */
-export default function App() {
-    const [currentPage, setCurrentPage] = useState('home');
-    
-    const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('authToken'));
-    const [userData, setUserData] = useState(() => {
-        const user = localStorage.getItem('userData');
-        return user ? JSON.parse(user) : null;
-    });
+// --- Komponen yang kita tambahkan ---
+import AdminPage from './pages/AdminPage';
+import ProtectedRoute from './utils/ProtectedRoute'; 
 
-    const renderPage = () => {
-        if (isLoggedIn && userData) {
-            // Logika routing yang sudah diperbaiki
-            if (userData.jalur_pendaftaran === 'rpl' || userData.jalur_pendaftaran === 'magister-rpl') {
-                return <DashboardRplPage setIsLoggedIn={setIsLoggedIn} setCurrentPage={setCurrentPage} />;
-            } else {
-                return <DashboardPage setIsLoggedIn={setIsLoggedIn} setCurrentPage={setCurrentPage} />;
-            }
-        }
+// Layout publik untuk halaman yang tidak memerlukan login
+import PublicLayout from './components/PublicLayout';
 
-        switch (currentPage) {
-            case 'login':
-                return <LoginPage 
-                    setCurrentPage={setCurrentPage} 
-                    setIsLoggedIn={setIsLoggedIn} 
-                    setUserData={setUserData}
-                />;
-            case 'register':
-                return <RegisterPage setCurrentPage={setCurrentPage} />;
-            case 'register-rpl':
-                return <RegisterRplPage setCurrentPage={setCurrentPage} />;
-            case 'register-magister':
-                return <RegisterMagisterPage setCurrentPage={setCurrentPage} />;
-            case 'register-magister-rpl':
-                return <RegisterMagisterRplPage setCurrentPage={setCurrentPage} />;
-            case 'home':
-            default:
-                return (
-                    <PublicLayout setCurrentPage={setCurrentPage}>
-                        <HomePage setCurrentPage={setCurrentPage} />
-                    </PublicLayout>
-                );
-        }
-    };
+function App() {
+  return (
+    // Router harus membungkus seluruh aplikasi
+    <Router>
+      <Routes>
+        {/* Rute Publik dengan Layout */}
+        <Route 
+          path="/" 
+          element={
+            <PublicLayout>
+              <HomePage />
+            </PublicLayout>
+          } 
+        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register-rpl" element={<RegisterRplPage />} />
+        <Route path="/register-magister" element={<RegisterMagisterPage />} />
+        <Route path="/register-magister-rpl" element={<RegisterMagisterRplPage />} />
 
-    return (
-        <div className="font-sans bg-gray-50">
-            {renderPage()}
-        </div>
-    );
+        {/* Grup Rute Terproteksi untuk User Biasa */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard-rpl" element={<DashboardRplPage />} />
+          <Route path="/dashboard-magister" element={<DashboardMagisterPage />} />
+          {/* Tambahkan rute dashboard lainnya di sini jika ada */}
+        </Route>
+        
+        {/* Grup Rute Terproteksi khusus untuk Admin */}
+        <Route element={<ProtectedRoute isAdminRoute={true} />}>
+          <Route path="/admin" element={<AdminPage />} />
+        </Route>
+
+      </Routes>
+    </Router>
+  );
 }
+
+export default App;

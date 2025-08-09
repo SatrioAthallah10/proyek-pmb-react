@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import axios from 'axios'; // 1. Import axios
 import { FaWhatsapp, FaCalendarAlt, FaPaperclip } from 'react-icons/fa';
 
 const KonfirmasiPembayaranView = ({ userData, refetchUserData, isRpl = false }) => {
+    // Semua state dan handler Anda dipertahankan
     const [file, setFile] = useState(null);
     const [fileName, setFileName] = useState('Choose file...');
     const [formData, setFormData] = useState({
@@ -27,6 +29,7 @@ const KonfirmasiPembayaranView = ({ userData, refetchUserData, isRpl = false }) 
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // --- PERBAIKAN HANYA DI DALAM FUNGSI INI ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -39,7 +42,14 @@ const KonfirmasiPembayaranView = ({ userData, refetchUserData, isRpl = false }) 
             return;
         }
 
-        const token = localStorage.getItem('authToken');
+        // 2. Menggunakan kunci 'token' yang benar
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError("Sesi tidak valid. Silakan login kembali.");
+            setIsLoading(false);
+            return;
+        }
+
         const dataToSend = new FormData();
         dataToSend.append('buktiPembayaran', file);
         dataToSend.append('keterangan', formData.keterangan);
@@ -52,27 +62,33 @@ const KonfirmasiPembayaranView = ({ userData, refetchUserData, isRpl = false }) 
             : 'http://127.0.0.1:8000/api/submit-konfirmasi-pembayaran';
 
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                body: dataToSend,
+            // 3. Mengganti fetch dengan axios
+            const response = await axios.post(apiUrl, dataToSend, {
+                headers: { 
+                    'Authorization': `Bearer ${token}`, 
+                    'Accept': 'application/json',
+                    // 'Content-Type': 'multipart/form-data' ditangani otomatis oleh axios
+                },
             });
 
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Gagal mengirim data.');
-
-            setMessage('Konfirmasi berhasil! Memuat status terbaru...');
+            setMessage(response.data.message || 'Konfirmasi berhasil!');
             
             setTimeout(() => {
                 refetchUserData();
             }, 1500);
 
         } catch (err) {
-            setError(err.message);
+            if (err.response && err.response.data) {
+                setError(err.response.data.message || 'Gagal mengirim data.');
+            } else {
+                setError('Terjadi kesalahan koneksi.');
+            }
+        } finally {
             setIsLoading(false);
         }
     };
 
+    // Seluruh logika render dan JSX Anda dipertahankan
     if (!userData) {
         return <div className="text-center p-8">Memuat data...</div>;
     }
@@ -112,7 +128,6 @@ const KonfirmasiPembayaranView = ({ userData, refetchUserData, isRpl = false }) 
         <div className="bg-white p-8 rounded-lg shadow-md">
             <h1 className="text-2xl font-bold text-blue-600 mb-6 border-b pb-4">Konfirmasi Pembayaran Formulir</h1>
             
-            {/* --- BLOK BARU YANG DITAMBAHKAN --- */}
             <div className="mb-6 border-b pb-6">
                 <div className="flex justify-between items-center">
                     <span className="text-lg font-medium text-gray-700">Total Biaya Pendaftaran:</span>
@@ -122,7 +137,6 @@ const KonfirmasiPembayaranView = ({ userData, refetchUserData, isRpl = false }) 
                     *Harap transfer sesuai dengan nominal yang tertera untuk mempermudah proses verifikasi.
                 </p>
             </div>
-            {/* --- AKHIR BLOK BARU --- */}
 
             <div className="text-center bg-gray-50 p-4 rounded-lg mb-6">
                 <p className="font-semibold">Pembayaran dapat dilakukan melalui transfer ke:</p>

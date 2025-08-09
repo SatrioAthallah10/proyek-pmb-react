@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-// ... (Komponen FormInput dan FormSelect tetap sama)
+// Komponen FormInput dan FormSelect Anda tetap sama
 const FormInput = ({ label, type = 'text', name, value, onChange, placeholder, className = '', readOnly = false }) => (
     <div className={`mb-6 ${className}`}>
         <label htmlFor={name} className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
@@ -34,8 +35,8 @@ const FormSelect = ({ label, name, value, onChange, children, className = '' }) 
 );
 
 
-// DIUBAH: Menerima prop 'isRpl'
 const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) => {
+    // Semua state Anda dipertahankan
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         namaLengkap: '',
@@ -63,9 +64,9 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('userData'));
+        const user = JSON.parse(localStorage.getItem('user'));
         if (user) {
-            setFormData(prev => ({ ...prev, namaLengkap: user.name }));
+            setFormData(prev => ({ ...prev, namaLengkap: user.name || user.nama_lengkap }));
         }
     }, []);
 
@@ -89,31 +90,40 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
         setIsLoading(true);
         setMessage('');
         setError('');
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token');
 
-        // DIUBAH: URL dinamis berdasarkan prop 'isRpl'
+        const dataToSend = {
+            nama_lengkap: formData.namaLengkap,
+            no_ktp: formData.noKtp,
+            no_ponsel: formData.noPonsel,
+            alamat: formData.alamat,
+            tempat_lahir: formData.tempatLahir,
+            tanggal_lahir: formData.tanggalLahir,
+            asal_sekolah: formData.asalSekolah,
+            nama_sekolah: formData.namaSekolah,
+            jurusan: formData.jurusan,
+            status_sekolah: formData.statusSekolah,
+            alamat_sekolah: formData.alamatSekolah,
+            kota_sekolah: formData.kotaSekolah,
+            nilai_rata_rata: formData.nilaiRataRata,
+            prodi_pilihan: formData.prodi,
+            jadwal_kuliah: formData.jadwalKuliah,
+            tahun_ajaran: formData.tahunAjaran,
+        };
+
         const apiUrl = isRpl 
             ? 'http://127.0.0.1:8000/api/rpl/submit-pendaftaran-awal' 
             : 'http://127.0.0.1:8000/api/submit-pendaftaran-awal';
 
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
+            const response = await axios.post(apiUrl, dataToSend, {
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify(formData),
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Gagal menyimpan data.');
-            }
-
-            setMessage('Data berhasil disimpan! Anda akan diarahkan ke halaman selanjutnya.');
+            setMessage(response.data.message || 'Data berhasil disimpan!');
             
             setTimeout(() => {
                 refetchUserData();
@@ -121,7 +131,15 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
             }, 1500);
 
         } catch (err) {
-            setError(err.message);
+            if (err.response && err.response.data && err.response.data.errors) {
+                const errorMessages = Object.values(err.response.data.errors).flat().join(' ');
+                setError(errorMessages);
+            } else if (err.response && err.response.data) {
+                setError(err.response.data.message || 'Gagal menyimpan data.');
+            } else {
+                setError('Terjadi kesalahan koneksi.');
+            }
+        } finally {
             setIsLoading(false);
         }
     };
@@ -130,12 +148,11 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
     const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
     const StepButton = ({ title, active }) => (
-        <button className={`px-8 py-3 rounded-lg font-semibold transition-colors text-sm ${active ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>
+        <button type="button" onClick={() => setStep(title === 'Biodata' ? 1 : title === 'Asal Sekolah' ? 2 : 3)} className={`px-8 py-3 rounded-lg font-semibold transition-colors text-sm ${active ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>
             {title}
         </button>
     );
     
-    // ... (renderStepContent dan JSX lainnya tetap sama)
     const renderStepContent = () => {
         switch (step) {
             case 1: // Biodata
@@ -148,9 +165,7 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
                            <label htmlFor="alamat" className="block text-sm font-medium text-gray-500 mb-1">Alamat</label>
                            <textarea id="alamat" name="alamat" value={formData.alamat} onChange={handleInputChange} rows="3" className="w-full px-4 py-2 border border-gray-300 rounded-lg"></textarea>
                         </div>
-                         <FormSelect label="Tempat Lahir" name="tempatLahir" value={formData.tempatLahir} onChange={handleInputChange}>
-                               <option>DKI JAKARTA</option><option>SURABAYA</option><option>SIDOARJO</option><option>GRESIK</option>
-                         </FormSelect>
+                        <FormInput label="Tempat Lahir" name="tempatLahir" value={formData.tempatLahir} onChange={handleInputChange} />
                         <FormInput label="Tanggal Lahir" name="tanggalLahir" type="date" value={formData.tanggalLahir} onChange={handleInputChange} />
                     </div>
                 );
@@ -171,9 +186,8 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
                            <label htmlFor="alamatSekolah" className="block text-sm font-medium text-gray-500 mb-1">Alamat Sekolah</label>
                            <textarea id="alamatSekolah" name="alamatSekolah" value={formData.alamatSekolah} onChange={handleInputChange} rows="3" className="w-full px-4 py-2 border border-gray-300 rounded-lg"></textarea>
                         </div>
-                        <FormSelect label="Kota" name="kotaSekolah" value={formData.kotaSekolah} onChange={handleInputChange}>
-                            <option>SURABAYA</option><option>SIDOARJO</option><option>GRESIK</option><option>JAKARTA</option>
-                        </FormSelect>
+                        {/* --- PERUBAHAN DI SINI --- */}
+                        <FormInput label="Kota" name="kotaSekolah" value={formData.kotaSekolah} onChange={handleInputChange} />
                         <FormInput label="Nilai Rata-Rata" name="nilaiRataRata" type="number" value={formData.nilaiRataRata} onChange={handleInputChange} />
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-500 mb-2">Scan Rapor (Semester Terakhir)</label>
@@ -221,15 +235,15 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
             {message && <p className="text-center text-green-600 mb-4">{message}</p>}
             {error && <p className="text-center text-red-600 mb-4">{error}</p>}
             <div className="flex justify-between">
-                <button onClick={prevStep} disabled={step === 1} className="bg-gray-300 text-gray-800 font-bold py-2 px-8 rounded-lg hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed">
+                <button type="button" onClick={prevStep} disabled={step === 1} className="bg-gray-300 text-gray-800 font-bold py-2 px-8 rounded-lg hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed">
                     Sebelumnya
                 </button>
                 {step === 3 ? (
-                     <button onClick={handleSubmit} disabled={isLoading} className="bg-green-500 text-white font-bold py-2 px-8 rounded-lg hover:bg-green-600 disabled:bg-gray-400">
+                     <button type="button" onClick={handleSubmit} disabled={isLoading} className="bg-green-500 text-white font-bold py-2 px-8 rounded-lg hover:bg-green-600 disabled:bg-gray-400">
                         {isLoading ? 'Menyimpan...' : 'Simpan'}
                     </button>
                 ) : (
-                    <button onClick={nextStep} className="bg-blue-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-blue-700">
+                    <button type="button" onClick={nextStep} className="bg-blue-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-blue-700">
                         Selanjutnya
                     </button>
                 )}
