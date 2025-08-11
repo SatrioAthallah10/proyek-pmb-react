@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // Import axios
 import { FaWhatsapp, FaCalendarAlt, FaPaperclip } from 'react-icons/fa';
 
-const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = false }) => {
+// Menerima 'user' sebagai prop, bukan lagi 'setActiveView'
+const KonfirmasiDaftarUlangView = ({ user, refetchUserData, isRpl = false }) => {
     const [file, setFile] = useState(null);
     const [fileName, setFileName] = useState('Choose file...');
     const [sppChoice, setSppChoice] = useState('');
@@ -11,33 +13,16 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = fal
         nominalTransfer: '',
         tanggalTransfer: '',
     });
-    const [userProgress, setUserProgress] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
+    // Mengisi keterangan dengan nama pengguna dari prop
     useEffect(() => {
-        const fetchUserData = async () => {
-            const token = localStorage.getItem('authToken');
-            const apiUrl = isRpl ? 'http://127.0.0.1:8000/api/rpl/user' : 'http://127.0.0.1:8000/api/user';
-            try {
-                const response = await fetch(apiUrl, {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                const data = await response.json();
-                setUserProgress(data);
-                if (data.name) {
-                    setFormData(prev => ({ ...prev, keterangan: `Pembayaran daftar ulang ${data.name}`}));
-                }
-            } catch (e) {
-                setError('Gagal memuat data pengguna.');
-            }
-        };
-        fetchUserData();
-    }, [isRpl]);
+        if (user && user.name) {
+            setFormData(prev => ({ ...prev, keterangan: `Pembayaran daftar ulang ${user.name}`}));
+        }
+    }, [user]);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -64,7 +49,7 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = fal
             return;
         }
 
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token'); // Menggunakan kunci 'token' yang benar
         const dataToSend = new FormData();
         dataToSend.append('buktiPembayaran', file);
         dataToSend.append('keterangan', formData.keterangan);
@@ -77,34 +62,35 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = fal
             : 'http://127.0.0.1:8000/api/submit-konfirmasi-daful';
 
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
+            // Mengganti fetch dengan axios
+            const response = await axios.post(apiUrl, dataToSend, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
                 },
-                body: dataToSend,
             });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Gagal mengirim data.');
             
-            setMessage('Konfirmasi berhasil! Memuat status terbaru...');
+            setMessage(response.data.message || 'Konfirmasi berhasil!');
             setTimeout(() => {
                 if (refetchUserData) refetchUserData();
             }, 1500);
 
         } catch (err) {
-            setError(err.message);
+            if (err.response && err.response.data) {
+                setError(err.response.data.message || 'Gagal mengirim data.');
+            } else {
+                setError('Terjadi kesalahan koneksi.');
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (!userProgress) {
+    if (!user) {
         return <div className="text-center p-8">Memuat data...</div>;
     }
     
-    if (userProgress.pembayaran_daful_status === 'Pembayaran Sudah Dikonfirmasi') {
+    if (user.pembayaran_daful_status === 'Pembayaran Sudah Dikonfirmasi') {
         return (
              <div className="bg-white p-8 rounded-lg shadow-md text-center">
                 <p className="bg-green-100 text-green-700 font-semibold py-2 px-4 rounded-md inline-block">File telah diverifikasi oleh admin</p>
@@ -129,7 +115,6 @@ const KonfirmasiDaftarUlangView = ({ setActiveView, refetchUserData, isRpl = fal
 
     return (
         <div className="bg-white p-8 rounded-lg shadow-md">
-            {/* ... Sisa JSX form tidak berubah ... */}
             <h1 className="text-2xl font-bold text-blue-600 mb-6 border-b pb-4">Informasi Pembayaran Daftar Ulang</h1>
             
             <div className="space-y-3 text-gray-700 mb-6">

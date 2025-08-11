@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios'; // Menggunakan axios untuk konsistensi
+import axios from 'axios';
 import DashboardHeader from '../components/dashboard/DashboardHeader.jsx';
 import DashboardNav from '../components/dashboard/DashboardNav.jsx';
 import RegistrationSidebar from '../components/dashboard/RegistrationSidebar.jsx';
@@ -10,14 +10,12 @@ import DaftarUlangView from '../components/dashboard/DaftarUlangView.jsx';
 import KonfirmasiDaftarUlangView from '../components/dashboard/KonfirmasiDaftarUlangView.jsx';
 import NPMView from '../components/dashboard/NPMView.jsx';
 
-// Menghapus prop yang tidak lagi digunakan oleh sistem routing baru
 const DashboardPage = () => {
     const [activeView, setActiveView] = useState('data-diri');
-    const [dashboardData, setDashboardData] = useState(null); // State untuk menampung {user, timeline}
+    const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // --- LOGIKA PENGAMBILAN DATA YANG DIPERBAIKI ---
     const fetchStatus = useCallback(async () => {
         setLoading(true);
         const token = localStorage.getItem('token');
@@ -27,14 +25,13 @@ const DashboardPage = () => {
             return;
         }
         try {
-            // Menggunakan endpoint yang benar
             const response = await axios.get('http://localhost:8000/api/registration-status', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
                 },
             });
-            setDashboardData(response.data); // Menyimpan seluruh objek {user, timeline}
+            setDashboardData(response.data);
         } catch (err) {
             console.error("Error fetching registration status:", err);
             setError("Gagal memuat data dasbor. Silakan coba lagi.");
@@ -47,7 +44,6 @@ const DashboardPage = () => {
         fetchStatus();
     }, [fetchStatus]);
 
-    // Tampilan loading dan error Anda dipertahankan
     if (loading) {
         return <div className="flex justify-center items-center min-h-screen bg-gray-100"><p>Memuat data dasbor...</p></div>;
     }
@@ -56,14 +52,12 @@ const DashboardPage = () => {
         return <div className="flex justify-center items-center min-h-screen bg-gray-100 text-red-600"><p>{error || "Data tidak dapat dimuat."}</p></div>;
     }
 
-    // Memecah data dari state untuk digunakan di komponen Anda
     const user = dashboardData.user;
     const timelineData = dashboardData.timeline;
 
     const isTesLulus = user?.tes_seleksi_completed;
     const isPembayaranDafulCompleted = user?.pembayaran_daful_completed;
 
-    // --- SELURUH LOGIKA TAMPILAN ANDA TETAP SAMA ---
     const renderView = () => {
         switch (activeView) {
             case 'konfirmasi-pembayaran':
@@ -71,18 +65,20 @@ const DashboardPage = () => {
             case 'pendaftaran-awal':
                 return <PendaftaranAwalView setActiveView={setActiveView} refetchUserData={fetchStatus} />;
             case 'konfirmasi-daftar-ulang':
-                 if (isTesLulus) { return <KonfirmasiDaftarUlangView setActiveView={setActiveView} refetchUserData={fetchStatus} />; }
+                 if (isTesLulus) { return <KonfirmasiDaftarUlangView user={user} refetchUserData={fetchStatus} />; }
                  else { return <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus dinyatakan lulus Tes Seleksi terlebih dahulu.</p></div>; }
             case 'tes-seleksi':
                 return <TesSeleksiView setActiveView={setActiveView} />;
             case 'soal-tes':
                 return <SoalTesView setActiveView={setActiveView} />;
             case 'hasil-tes':
-                return <HasilTesView />;
+                return <HasilTesView user={user} />;
             case 'ktm':
                 return <KtmView />;
+            // --- PERBAIKAN DI SINI ---
+            // Mengirim data 'user' sebagai prop ke DaftarUlangView
             case 'daftar-ulang':
-                if (isPembayaranDafulCompleted) { return <DaftarUlangView />; }
+                if (isPembayaranDafulCompleted) { return <DaftarUlangView user={user} />; }
                 else { return <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus menyelesaikan proses Pembayaran Daftar Ulang terlebih dahulu.</p></div>; }
             case 'npm':
                 return <NPMView />;
@@ -92,7 +88,6 @@ const DashboardPage = () => {
         }
     };
 
-    // --- SELURUH STRUKTUR JSX ANDA TETAP SAMA ---
     return (
         <div className="bg-gray-100 min-h-screen">
             <DashboardHeader user={user} />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaUsers } from 'react-icons/fa';
+import { FaTachometerAlt, FaUsers } from 'react-icons/fa';
 
 const AdminNav = ({ activeView, setActiveView }) => {
     const NavButton = ({ viewName, icon, children }) => {
@@ -22,10 +22,12 @@ const AdminNav = ({ activeView, setActiveView }) => {
     return (
         <nav className="bg-[#2c3e50] p-3 shadow-md">
             <div className="container mx-auto flex items-center space-x-4">
+                <NavButton viewName="dashboard" icon={<FaTachometerAlt className="mr-2" />}>
+                    Dashboard
+                </NavButton>
                 <NavButton viewName="manajemen-pendaftar" icon={<FaUsers className="mr-2" />}>
                     Manajemen Pendaftar
                 </NavButton>
-                {/* Tombol navigasi admin lainnya bisa ditambahkan di sini nanti */}
             </div>
         </nav>
     );

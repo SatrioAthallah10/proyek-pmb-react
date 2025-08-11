@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
     FaPlus, FaArrowRight, FaArrowLeft, FaClock,
     FaGlobe, FaSignInAlt, FaFileAlt, FaMoneyBillWave,
@@ -6,7 +7,7 @@ import {
 } from 'react-icons/fa';
 import { bankSoalTes } from '../../data/mockData.js';
 
-// ... (Komponen FlowCard, DataDiriView, dan TesSeleksiView tetap sama)
+// Komponen FlowCard, DataDiriView, dan TesSeleksiView tetap sama
 const FlowCard = ({ icon, title, description, arrow, action, onClick }) => {
     const ArrowIcon = () => {
         switch (arrow) {
@@ -78,7 +79,7 @@ export const DataDiriView = () => {
 
 
 export const TesSeleksiView = ({ setActiveView }) => {
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userData = JSON.parse(localStorage.getItem('user'));
     return (
         <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <h1 className="text-2xl font-bold text-blue-600 mb-2">Tes Seleksi PMB ITATS</h1>
@@ -119,6 +120,42 @@ export const SoalTesView = ({ setActiveView, isRpl = false }) => {
         setQuestions(shuffled.slice(0, 20));
     }, []);
 
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        setError('');
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError("Sesi tidak valid. Silakan login kembali.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        const apiUrl = isRpl 
+            ? 'http://127.0.0.1:8000/api/rpl/submit-hasil-tes' 
+            : 'http://127.0.0.1:8000/api/submit-hasil-tes';
+
+        try {
+            const response = await axios.post(apiUrl, { answers }, {
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setActiveView('hasil-tes');
+            window.location.reload();
+
+        } catch (err) {
+            if (err.response && err.response.data) {
+                setError(err.response.data.message || 'Gagal mengirim jawaban.');
+            } else {
+                setError('Terjadi kesalahan koneksi.');
+            }
+            setIsSubmitting(false);
+        }
+    };
+
     useEffect(() => {
         if (timeLeft <= 0) {
             handleSubmit();
@@ -126,39 +163,11 @@ export const SoalTesView = ({ setActiveView, isRpl = false }) => {
         }
         const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
         return () => clearInterval(timer);
-    }, [timeLeft]);
+    }, [timeLeft, handleSubmit]);
 
     const handleOptionSelect = (questionId, option) => setAnswers(prev => ({ ...prev, [questionId]: option }));
     const handleNext = () => currentQuestionIndex < questions.length - 1 && setCurrentQuestionIndex(prev => prev + 1);
     const handlePrev = () => currentQuestionIndex > 0 && setCurrentQuestionIndex(prev => prev - 1);
-
-    const handleSubmit = async () => {
-        setIsSubmitting(true);
-        setError('');
-        const token = localStorage.getItem('authToken');
-
-        const apiUrl = isRpl 
-            ? 'http://127.0.0.1:8000/api/rpl/submit-hasil-tes' 
-            : 'http://127.0.0.1:8000/api/submit-hasil-tes';
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ answers }),
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Gagal mengirim jawaban.');
-            
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            setActiveView('hasil-tes');
-            window.location.reload();
-
-        } catch (err) {
-            setError(err.message || 'Terjadi kesalahan.');
-            setIsSubmitting(false);
-        }
-    };
 
     if (questions.length === 0) return <div className="text-center p-8">Mempersiapkan soal...</div>;
 
@@ -199,40 +208,14 @@ export const SoalTesView = ({ setActiveView, isRpl = false }) => {
 };
 
 
-export const HasilTesView = () => {
-    const [userData, setUserData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+// --- PERBAIKAN DI SINI ---
+// Menghapus useEffect dan state, lalu menerima 'user' sebagai prop
+export const HasilTesView = ({ user }) => {
+    if (!user) {
+        return <div className="text-center p-8">Memuat hasil tes...</div>;
+    }
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                setError('Sesi tidak valid.');
-                setLoading(false);
-                return;
-            }
-            try {
-                const response = await fetch('http://127.0.0.1:8000/api/user', {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                });
-                if (!response.ok) throw new Error('Gagal mengambil data pengguna.');
-                const data = await response.json();
-                setUserData(data);
-                localStorage.setItem('userData', JSON.stringify(data));
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchUserData();
-    }, []);
-
-    if (loading) return <div className="text-center p-8">Memuat hasil tes...</div>;
-    if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
-
-    const isLulus = userData?.tes_seleksi_completed;
+    const isLulus = user.tes_seleksi_completed;
     const statusMessage = isLulus ? "Anda telah dinyatakan LULUS dengan grade B." : "Anda dinyatakan TIDAK LULUS.";
     const statusClass = isLulus ? "bg-blue-100 border-blue-200 text-blue-800" : "bg-red-100 border-red-200 text-red-800";
 
@@ -247,7 +230,7 @@ export const HasilTesView = () => {
                 {!isLulus && <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"><FaPlus /> Tes Ulang</button>}
             </div>
             <div className="text-center mb-6">
-                <h3 className="text-2xl font-semibold uppercase">{userData?.name || 'Nama Mahasiswa'}</h3>
+                <h3 className="text-2xl font-semibold uppercase">{user.name || 'Nama Mahasiswa'}</h3>
                 <span className="text-gray-500">Jumlah Percobaan : 1</span>
             </div>
             <div className="overflow-x-auto">

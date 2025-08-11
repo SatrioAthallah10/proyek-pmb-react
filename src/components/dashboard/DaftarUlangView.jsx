@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // Import axios
 import { FaTimes } from 'react-icons/fa';
 
-// ... (Komponen utilitas FormInput, FormSelect, FormTextarea tetap sama)
+// Komponen utilitas FormInput, FormSelect, FormTextarea tetap sama
 const FormInput = ({ label, className = '', ...props }) => (
     <div className={className}>
         <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
@@ -26,33 +27,21 @@ const FormTextarea = ({ label, className = '', ...props }) => (
 );
 
 
-const DaftarUlangView = ({ isRpl = false }) => {
+// Menerima 'user' sebagai prop
+const DaftarUlangView = ({ user, isRpl = false }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({});
-    const [userProgress, setUserProgress] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [showAlert, setShowAlert] = useState(true);
 
+    // Mengisi form dengan data dari prop 'user'
     useEffect(() => {
-        const fetchUserData = async () => {
-            const token = localStorage.getItem('authToken');
-            const apiUrl = isRpl ? 'http://127.0.0.1:8000/api/rpl/user' : 'http://127.0.0.1:8000/api/user';
-            try {
-                const response = await fetch(apiUrl, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!response.ok) throw new Error('Sesi tidak valid, silakan login kembali.');
-                const data = await response.json();
-                setUserProgress(data);
-                setFormData(data || {});
-            } catch (e) {
-                setError(e.message);
-            }
-        };
-        fetchUserData();
-    }, [isRpl]);
+        if (user) {
+            setFormData(user);
+        }
+    }, [user]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -63,27 +52,29 @@ const DaftarUlangView = ({ isRpl = false }) => {
         setIsLoading(true);
         setMessage('');
         setError('');
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token'); // Menggunakan kunci 'token' yang benar
 
         const apiUrl = isRpl 
             ? 'http://127.0.0.1:8000/api/rpl/submit-daftar-ulang' 
             : 'http://127.0.0.1:8000/api/submit-daftar-ulang';
 
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
+            // Mengganti fetch dengan axios
+            const response = await axios.post(apiUrl, formData, {
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify(formData),
             });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Gagal menyimpan data.');
-            setMessage('Data berhasil disimpan! Halaman akan dimuat ulang.');
+            
+            setMessage(response.data.message || 'Data berhasil disimpan!');
             setTimeout(() => window.location.reload(), 2000);
         } catch (err) {
-            setError(err.message);
+            if (err.response && err.response.data) {
+                setError(err.response.data.message || 'Gagal menyimpan data.');
+            } else {
+                setError('Terjadi kesalahan koneksi.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -160,11 +151,11 @@ const DaftarUlangView = ({ isRpl = false }) => {
         }
     };
     
-    if (!userProgress) {
+    if (!user) {
         return <div className="text-center p-8">Memuat data...</div>;
     }
     
-    if (userProgress.pengisian_data_diri_completed) {
+    if (user.pengisian_data_diri_completed) {
         return (
             <div className="bg-white p-8 rounded-lg shadow-md text-center">
                 <h1 className="text-2xl font-bold text-green-600 mb-4">Proses Daftar Ulang Selesai</h1>
