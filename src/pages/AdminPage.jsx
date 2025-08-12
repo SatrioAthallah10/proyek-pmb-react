@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import AdminNav from '../components/dashboard/AdminNav';
+import ProgressModal from '../components/dashboard/ProgressModal';
 import { FaUserPlus, FaUserCheck, FaCreditCard, FaUserGraduate } from 'react-icons/fa';
 
-// Komponen untuk kartu statistik
+// Komponen StatCard dan StatChart tidak berubah
 const StatCard = ({ icon, title, value, color }) => (
     <div className={`bg-white p-6 rounded-lg shadow-md flex items-center ${color}`}>
         <div className="mr-4 text-3xl">{icon}</div>
@@ -15,7 +16,6 @@ const StatCard = ({ icon, title, value, color }) => (
     </div>
 );
 
-// Komponen untuk grafik batang sederhana
 const StatChart = ({ data }) => {
     if (!data) return null;
     const maxValue = data.total_pendaftar;
@@ -48,7 +48,6 @@ const StatChart = ({ data }) => {
     );
 };
 
-
 const StatusIcon = ({ isConfirmed }) => (
   isConfirmed ? <span className="text-green-500">✔️</span> : <span className="text-red-500">❌</span>
 );
@@ -58,39 +57,77 @@ const AdminPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [kepalaBagianUser, setKepalaBagianUser] = useState(null); // <-- [PERUBAHAN] Variabel lebih deskriptif
+  const [adminUser, setAdminUser] = useState(null);
   const [activeView, setActiveView] = useState('dashboard');
+  
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalLoading, setIsModalLoading] = useState(false);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = useCallback(async () => {
+    if (!users.length) {
+        setLoading(true);
+    }
     try {
       const token = localStorage.getItem('token');
-      // <-- [PERUBAHAN] Mengganti endpoint API
       const [usersResponse, statsResponse] = await Promise.all([
         axios.get('http://localhost:8000/api/kepala-bagian/users', { headers: { Authorization: `Bearer ${token}` } }),
         axios.get('http://localhost:8000/api/kepala-bagian/stats', { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setUsers(usersResponse.data);
       setStats(statsResponse.data);
+
+      // --- [PERBAIKAN] Tambahkan validasi sebelum fetch detail ---
+      if (selectedUser && selectedUser.id) {
+        const detailResponse = await axios.get(`http://localhost:8000/api/kepala-bagian/users/${selectedUser.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        setSelectedUser(detailResponse.data);
+      }
+
     } catch (err) {
-      setError('Gagal memuat data Kepala Bagian.'); // <-- [PERUBAHAN] Pesan error disesuaikan
+      // Jangan set error jika errornya 404 karena user belum dipilih
+      if (err.response?.status !== 404) {
+        setError('Gagal memuat data Kepala Bagian.');
+      }
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedUser, users.length]);
 
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
-    setKepalaBagianUser(loggedInUser); // <-- [PERUBAHAN]
+    setAdminUser(loggedInUser);
+
     fetchData();
-  }, []);
+    const intervalId = setInterval(fetchData, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchData]);
+
+
+  const handleUserClick = async (user) => {
+    setIsModalOpen(true);
+    setIsModalLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8000/api/kepala-bagian/users/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSelectedUser(response.data);
+    } catch (err) {
+      console.error("Gagal mengambil detail user:", err);
+      setIsModalOpen(false);
+    } finally {
+      setIsModalLoading(false);
+    }
+  };
 
   const handleConfirm = async (userId, confirmationType) => {
     if (!window.confirm('Apakah Anda yakin?')) return;
     try {
       const token = localStorage.getItem('token');
-      // <-- [PERUBAHAN] Mengganti endpoint API
       const url = `http://localhost:8000/api/kepala-bagian/users/${userId}/${confirmationType}`;
       await axios.put(url, {}, { headers: { Authorization: `Bearer ${token}` } });
       alert('Konfirmasi berhasil!');
@@ -138,7 +175,12 @@ const AdminPage = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {users.map((user) => (
                     <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name || 'N/A'}</td>
+                      <td 
+                        className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:underline cursor-pointer"
+                        onClick={() => handleUserClick(user)}
+                      >
+                        {user.name || 'N/A'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm"><StatusIcon isConfirmed={user.pendaftaran_awal} /></td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm"><StatusIcon isConfirmed={user.pembayaran} /></td>
@@ -174,11 +216,19 @@ const AdminPage = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <DashboardHeader user={kepalaBagianUser} />
+      <DashboardHeader user={adminUser} />
       <AdminNav activeView={activeView} setActiveView={setActiveView} />
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         {renderView()}
       </div>
+      
+      {isModalOpen && (
+        <ProgressModal 
+            user={selectedUser} 
+            onClose={() => setIsModalOpen(false)}
+            isLoading={isModalLoading}
+        />
+      )}
     </div>
   );
 };
