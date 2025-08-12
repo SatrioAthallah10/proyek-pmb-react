@@ -58,22 +58,22 @@ const AdminPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [adminUser, setAdminUser] = useState(null);
-  const [activeView, setActiveView] = useState('dashboard'); // Tampilan awal adalah dashboard
+  const [kepalaBagianUser, setKepalaBagianUser] = useState(null); // <-- [PERUBAHAN] Variabel lebih deskriptif
+  const [activeView, setActiveView] = useState('dashboard');
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      // Mengambil data pengguna dan statistik secara bersamaan
+      // <-- [PERUBAHAN] Mengganti endpoint API
       const [usersResponse, statsResponse] = await Promise.all([
-        axios.get('http://localhost:8000/api/admin/users', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:8000/api/admin/stats', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get('http://localhost:8000/api/kepala-bagian/users', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('http://localhost:8000/api/kepala-bagian/stats', { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setUsers(usersResponse.data);
       setStats(statsResponse.data);
     } catch (err) {
-      setError('Gagal memuat data admin.');
+      setError('Gagal memuat data Kepala Bagian.'); // <-- [PERUBAHAN] Pesan error disesuaikan
       console.error(err);
     } finally {
       setLoading(false);
@@ -82,7 +82,7 @@ const AdminPage = () => {
 
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
-    setAdminUser(loggedInUser);
+    setKepalaBagianUser(loggedInUser); // <-- [PERUBAHAN]
     fetchData();
   }, []);
 
@@ -90,10 +90,11 @@ const AdminPage = () => {
     if (!window.confirm('Apakah Anda yakin?')) return;
     try {
       const token = localStorage.getItem('token');
-      const url = `http://localhost:8000/api/admin/users/${userId}/${confirmationType}`;
+      // <-- [PERUBAHAN] Mengganti endpoint API
+      const url = `http://localhost:8000/api/kepala-bagian/users/${userId}/${confirmationType}`;
       await axios.put(url, {}, { headers: { Authorization: `Bearer ${token}` } });
       alert('Konfirmasi berhasil!');
-      fetchData(); // Memuat ulang semua data
+      fetchData();
     } catch (err) {
       alert('Konfirmasi gagal.');
       console.error(err);
@@ -173,7 +174,7 @@ const AdminPage = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <DashboardHeader user={adminUser} />
+      <DashboardHeader user={kepalaBagianUser} />
       <AdminNav activeView={activeView} setActiveView={setActiveView} />
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         {renderView()}

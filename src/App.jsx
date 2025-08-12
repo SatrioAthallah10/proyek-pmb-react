@@ -44,8 +44,8 @@ function App() {
           {/* Tambahkan rute dashboard lainnya di sini jika ada */}
         </Route>
         
-        {/* Grup Rute Terproteksi khusus untuk Admin */}
-        <Route element={<ProtectedRoute isAdminRoute={true} />}>
+        {/* Grup Rute Terproteksi khusus untuk Kepala Bagian */}
+        <Route element={<ProtectedRoute isKepalaBagianRoute={true} />}> {/* <-- [PERUBAHAN] */}
           <Route path="/admin" element={<AdminPage />} />
         </Route>
 

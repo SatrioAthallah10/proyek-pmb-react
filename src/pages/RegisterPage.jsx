@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaUser, FaEnvelope, FaLock, FaPhone, FaHashtag } from 'react-icons/fa';
+import { Link } from 'react-router-dom'; // <-- [PERBAIKAN] Impor komponen Link
 
 // Komponen-komponen form yang bisa digunakan kembali
 const FormInputWithIcon = ({ icon, label, name, type, value, onChange, placeholder }) => (
@@ -64,9 +65,9 @@ const RegisterPage = ({ setCurrentPage }) => {
         nomorTelepon: '',
         jalur: 'Reguler',
         sumberPendaftaran: '',
-        nomorBrosur: '', // <-- TAMBAHKAN STATE INI
-        namaPemberiRekomendasi: '', // <-- TAMBAHKAN STATE INI
-        nomorWaRekomendasi: '',   // <-- TAMBAHKAN STATE INI
+        nomorBrosur: '',
+        namaPemberiRekomendasi: '',
+        nomorWaRekomendasi: '',
         password: '',
         konfirmPassword: '',
         agreePolicy: false,
@@ -189,7 +190,6 @@ const RegisterPage = ({ setCurrentPage }) => {
                         </FormSelect>
                         <FormInputWithIcon icon={<FaPhone className="text-gray-400" />} label="Nomor Telepon" name="nomorTelepon" type="tel" value={formData.nomorTelepon} onChange={handleInputChange} placeholder="+62/0812345678" />
                         
-                        {/* PERBAIKAN: Mengubah opsi di dalam dropdown Jalur */}
                         <FormSelect label="Jalur" name="jalur" value={formData.jalur} onChange={handleInputChange}>
                             <option value="Reguler">Reguler</option>
                             <option value="Undangan">Undangan</option>
@@ -214,17 +214,16 @@ const RegisterPage = ({ setCurrentPage }) => {
                             <option>Radio</option>
                             <option>TV</option>
                             <option>Teman</option>
-                            <option>Tetangga/Saudara</option> {/* <-- TAMBAHKAN OPSI INI */}
-                            <option>Dosen ITATS</option> {/* <-- TAMBAHKAN OPSI INI */}
-                            <option>Mahasiswa ITATS</option> {/* <-- TAMBAHKAN OPSI INI */}
-                            <option>Brosur (DIGITAL)</option> {/* <-- TAMBAHKAN OPSI INI */}
-                            <option>Guru</option> {/* <-- TAMBAHKAN OPSI INI */}
-                            <option>Pengasuh Pondok Pesantren</option> {/* <-- TAMBAHKAN OPSI INI */}
-                            <option>Program Afirmasi Keluarga Wisudawan</option> {/* <-- TAMBAHKAN OPSI INI */}
-                            <option>Affiliate</option> {/* <-- TAMBAHKAN OPSI INI */}
+                            <option>Tetangga/Saudara</option>
+                            <option>Dosen ITATS</option>
+                            <option>Mahasiswa ITATS</option>
+                            <option>Brosur (DIGITAL)</option>
+                            <option>Guru</option>
+                            <option>Pengasuh Pondok Pesantren</option>
+                            <option>Program Afirmasi Keluarga Wisudawan</option>
+                            <option>Affiliate</option>
                         </FormSelect>
 
-                        {/* === BLOK KODE BARU DIMULAI DI SINI === */}
                         {formData.sumberPendaftaran === 'Brosur' && (
                             <FormInputWithIcon 
                                 icon={<FaHashtag className="text-gray-400" />} 
@@ -236,160 +235,8 @@ const RegisterPage = ({ setCurrentPage }) => {
                                 placeholder="Masukkan kode brosur..." 
                             />
                         )}
-                        {/* === BLOK KODE BARU SELESAI DI SINI === */}
 
-                        {/* === BLOK KODE BARU UNTUK GURU BK === */}
-                        {formData.sumberPendaftaran === 'Guru BK' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama guru BK..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK ALUMNI ITATS === */}
-                        {formData.sumberPendaftaran === 'Alumni ITATS' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama alumni..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK TEMAN === */}
-                        {formData.sumberPendaftaran === 'Teman' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama teman..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK TETANGGA/SAUDARA === */}
-                        {formData.sumberPendaftaran === 'Tetangga/Saudara' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama tetangga/saudara..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK DOSEN ITATS === */}
-                        {formData.sumberPendaftaran === 'Dosen ITATS' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama dosen..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK MAHASISWA ITATS === */}
-                        {formData.sumberPendaftaran === 'Mahasiswa ITATS' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama mahasiswa..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK BROSUR (DIGITAL) === */}
-                        {formData.sumberPendaftaran === 'Brosur (DIGITAL)' && (
+                        {(formData.sumberPendaftaran === 'Guru BK' || formData.sumberPendaftaran === 'Alumni ITATS' || formData.sumberPendaftaran === 'Teman' || formData.sumberPendaftaran === 'Tetangga/Saudara' || formData.sumberPendaftaran === 'Dosen ITATS' || formData.sumberPendaftaran === 'Mahasiswa ITATS' || formData.sumberPendaftaran === 'Brosur (DIGITAL)' || formData.sumberPendaftaran === 'Guru' || formData.sumberPendaftaran === 'Pengasuh Pondok Pesantren' || formData.sumberPendaftaran === 'Program Afirmasi Keluarga Wisudawan' || formData.sumberPendaftaran === 'Affiliate') && (
                             <>
                                 <FormInputWithIcon 
                                     icon={<FaUser className="text-gray-400" />} 
@@ -411,107 +258,6 @@ const RegisterPage = ({ setCurrentPage }) => {
                                 />
                             </>
                         )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK GURU === */}
-                        {formData.sumberPendaftaran === 'Guru' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama guru..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK PENGASUH PONDOK PESANTREN === */}
-                        {formData.sumberPendaftaran === 'Pengasuh Pondok Pesantren' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama pengasuh..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK AFIRMASI KELUARGA WISUDAWAN === */}
-                        {formData.sumberPendaftaran === 'Program Afirmasi Keluarga Wisudawan' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama keluarga wisudawan..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
-
-                        {/* === BLOK KODE BARU UNTUK AFFILIATE === */}
-                        {formData.sumberPendaftaran === 'Affiliate' && (
-                            <>
-                                <FormInputWithIcon 
-                                    icon={<FaUser className="text-gray-400" />} 
-                                    label="Nama Pemberi Rekomendasi" 
-                                    name="namaPemberiRekomendasi" 
-                                    type="text" 
-                                    value={formData.namaPemberiRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nama affiliate..." 
-                                />
-                                <FormInputWithIcon 
-                                    icon={<FaPhone className="text-gray-400" />} 
-                                    label="Nomor WA Pemberi Rekomendasi" 
-                                    name="nomorWaRekomendasi" 
-                                    type="tel" 
-                                    value={formData.nomorWaRekomendasi} 
-                                    onChange={handleInputChange} 
-                                    placeholder="Masukkan nomor WA..." 
-                                />
-                            </>
-                        )}
-                        {/* === AKHIR BLOK KODE BARU === */}
 
                         {/* Password */}
                         <div className="mb-4">
@@ -564,14 +310,15 @@ const RegisterPage = ({ setCurrentPage }) => {
                         </div>
 
                         <div className="flex justify-between items-center">
-                            <a href="#" onClick={() => setCurrentPage('login')} className="text-sm text-blue-600 hover:underline">Sudah Punya Akun? Login disini</a>
+                            {/* -- [PERBAIKAN] Mengganti <a> dengan <Link> -- */}
+                            <Link to="/login" className="text-sm text-blue-600 hover:underline">Sudah Punya Akun? Login disini</Link>
                             <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled={isLoading}>
                                 {isLoading ? 'Mendaftar...' : 'Daftar'}
                             </button>
                         </div>
                     </form>
                     <div className="text-center mt-6">
-                        <a href="#" onClick={() => setCurrentPage('home')} className="text-sm text-blue-600 hover:underline">Back To Home</a>
+                        <Link to="/" className="text-sm text-blue-600 hover:underline">Back To Home</Link>
                         <p className="text-xs text-gray-400 mt-4">Copyright © 2021 PSI Institut Teknologi Adhi Tama Surabaya 2023</p>
                     </div>
                 </div>
