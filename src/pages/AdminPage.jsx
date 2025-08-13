@@ -3,6 +3,8 @@ import axios from 'axios';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import AdminNav from '../components/dashboard/AdminNav';
 import ProgressModal from '../components/dashboard/ProgressModal';
+// --- [PERUBAHAN] Impor komponen view baru ---
+import MahasiswaAktifView from '../components/dashboard/MahasiswaAktifView'; 
 import { FaUserPlus, FaUserCheck, FaCreditCard, FaUserGraduate, FaSearch } from 'react-icons/fa';
 
 // Komponen StatCard dan StatChart tidak berubah
@@ -64,37 +66,58 @@ const AdminPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalLoading, setIsModalLoading] = useState(false);
 
-  // --- [PERBAIKAN] Pisahkan state untuk input dan untuk query API ---
-  const [searchInput, setSearchInput] = useState(''); // Untuk nilai di kotak input
-  const [searchTerm, setSearchTerm] = useState('');   // Untuk memicu API call
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = useCallback(async () => {
+    // Hanya fetch data pendaftar jika view-nya adalah manajemen pendaftar
+    if (activeView !== 'manajemen-pendaftar') {
+        setLoading(false);
+        return;
+    }
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const usersResponse = await axios.get('http://localhost:8000/api/kepala-bagian/users', { 
         headers: { Authorization: `Bearer ${token}` },
-        params: { search: searchTerm } // Gunakan searchTerm untuk query
+        params: { search: searchTerm } 
       });
-      const statsResponse = await axios.get('http://localhost:8000/api/kepala-bagian/stats', { headers: { Authorization: `Bearer ${token}` } });
-      
       setUsers(usersResponse.data);
-      setStats(statsResponse.data);
     } catch (err) {
-      setError('Gagal memuat data Kepala Bagian.');
+      setError('Gagal memuat data pendaftar.');
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [searchTerm]); // Hanya jalankan fetchData saat searchTerm berubah
+  }, [searchTerm, activeView]);
+
+  // Fetch stats terpisah agar tidak terpanggil ulang terus-menerus
+  const fetchStats = useCallback(async () => {
+    setLoading(true);
+    try {
+        const token = localStorage.getItem('token');
+        const statsResponse = await axios.get('http://localhost:8000/api/kepala-bagian/stats', { headers: { Authorization: `Bearer ${token}` } });
+        setStats(statsResponse.data);
+    } catch (err) {
+        setError('Gagal memuat data statistik.');
+        console.error(err);
+    } finally {
+        setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
     setAdminUser(loggedInUser);
-    fetchData();
-  }, [fetchData]);
+    
+    // Panggil fetch berdasarkan view
+    if (activeView === 'dashboard') {
+        fetchStats();
+    } else if (activeView === 'manajemen-pendaftar') {
+        fetchData();
+    }
+  }, [fetchData, fetchStats, activeView]);
 
-  // --- [FITUR BARU] Fungsi untuk menangani klik tombol cari ---
   const handleSearch = () => {
     setSearchTerm(searchInput);
   };
@@ -123,7 +146,7 @@ const AdminPage = () => {
       const url = `http://localhost:8000/api/kepala-bagian/users/${userId}/${confirmationType}`;
       await axios.put(url, {}, { headers: { Authorization: `Bearer ${token}` } });
       alert('Konfirmasi berhasil!');
-      fetchData();
+      fetchData(); // Refresh data pendaftar
     } catch (err) {
       alert('Konfirmasi gagal.');
       console.error(err);
@@ -131,11 +154,11 @@ const AdminPage = () => {
   };
 
   const renderView = () => {
-    if (loading) return <div className="text-center p-8">Memuat data...</div>;
-    if (error) return <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>;
-
+    // --- [PERUBAHAN] Tambahkan case untuk view baru ---
     switch (activeView) {
       case 'dashboard':
+        if (loading) return <div className="text-center p-8">Memuat data...</div>;
+        if (error) return <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>;
         return (
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Dashboard Statistik</h1>
@@ -149,6 +172,8 @@ const AdminPage = () => {
           </div>
         );
       case 'manajemen-pendaftar':
+        if (loading) return <div className="text-center p-8">Memuat data...</div>;
+        if (error) return <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>;
         return (
           <>
             <div className="flex justify-between items-center mb-6">
@@ -222,6 +247,8 @@ const AdminPage = () => {
             </div>
           </>
         );
+      case 'mahasiswa-aktif':
+        return <MahasiswaAktifView />;
       default:
         return null;
     }
