@@ -2,6 +2,22 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { FaSearch } from 'react-icons/fa';
 
+// --- [PERUBAHAN DIMULAI DI SINI] ---
+
+// Fungsi helper untuk memetakan jalur pendaftaran ke nama yang lebih deskriptif
+const getJalurPendaftaranName = (jalur) => {
+  const map = {
+    'reguler': 'Sarjana Reguler',
+    'rpl': 'Sarjana RPL',
+    'magister-reguler': 'Magister Reguler',
+    'magister-rpl': 'Magister RPL'
+  };
+  // Mengganti underscore, mengubah ke huruf kecil, lalu mencari di map.
+  // Jika tidak ditemukan, kembalikan teks aslinya dengan format yang lebih baik.
+  const formattedJalur = jalur.toLowerCase().replace(/_/g, '-');
+  return map[formattedJalur] || jalur.replace(/_/g, ' ').toUpperCase();
+};
+
 // Komponen untuk menampilkan baris tabel data mahasiswa
 const MahasiswaRow = ({ mahasiswa }) => (
   <tr className="hover:bg-gray-50">
@@ -10,11 +26,15 @@ const MahasiswaRow = ({ mahasiswa }) => (
     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{mahasiswa.email}</td>
     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-        {mahasiswa.jalur_pendaftaran.replace(/_/g, ' ').toUpperCase()}
+        {/* Menggunakan fungsi helper yang baru dibuat */}
+        {getJalurPendaftaranName(mahasiswa.jalur_pendaftaran)}
       </span>
     </td>
   </tr>
 );
+
+// --- [PERUBAHAN SELESAI DI SINI] ---
+
 
 const MahasiswaAktifView = () => {
   const [mahasiswaAktif, setMahasiswaAktif] = useState([]);
