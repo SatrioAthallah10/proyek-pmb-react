@@ -3,7 +3,7 @@ import axios from 'axios';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import AdminNav from '../components/dashboard/AdminNav';
 import ProgressModal from '../components/dashboard/ProgressModal';
-import { FaUserPlus, FaUserCheck, FaCreditCard, FaUserGraduate } from 'react-icons/fa';
+import { FaUserPlus, FaUserCheck, FaCreditCard, FaUserGraduate, FaSearch } from 'react-icons/fa';
 
 // Komponen StatCard dan StatChart tidak berubah
 const StatCard = ({ icon, title, value, color }) => (
@@ -64,48 +64,40 @@ const AdminPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalLoading, setIsModalLoading] = useState(false);
 
+  // --- [PERBAIKAN] Pisahkan state untuk input dan untuk query API ---
+  const [searchInput, setSearchInput] = useState(''); // Untuk nilai di kotak input
+  const [searchTerm, setSearchTerm] = useState('');   // Untuk memicu API call
+
   const fetchData = useCallback(async () => {
-    if (!users.length) {
-        setLoading(true);
-    }
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const [usersResponse, statsResponse] = await Promise.all([
-        axios.get('http://localhost:8000/api/kepala-bagian/users', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:8000/api/kepala-bagian/stats', { headers: { Authorization: `Bearer ${token}` } })
-      ]);
+      const usersResponse = await axios.get('http://localhost:8000/api/kepala-bagian/users', { 
+        headers: { Authorization: `Bearer ${token}` },
+        params: { search: searchTerm } // Gunakan searchTerm untuk query
+      });
+      const statsResponse = await axios.get('http://localhost:8000/api/kepala-bagian/stats', { headers: { Authorization: `Bearer ${token}` } });
+      
       setUsers(usersResponse.data);
       setStats(statsResponse.data);
-
-      // --- [PERBAIKAN] Tambahkan validasi sebelum fetch detail ---
-      if (selectedUser && selectedUser.id) {
-        const detailResponse = await axios.get(`http://localhost:8000/api/kepala-bagian/users/${selectedUser.id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        setSelectedUser(detailResponse.data);
-      }
-
     } catch (err) {
-      // Jangan set error jika errornya 404 karena user belum dipilih
-      if (err.response?.status !== 404) {
-        setError('Gagal memuat data Kepala Bagian.');
-      }
+      setError('Gagal memuat data Kepala Bagian.');
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [selectedUser, users.length]);
+  }, [searchTerm]); // Hanya jalankan fetchData saat searchTerm berubah
 
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
     setAdminUser(loggedInUser);
-
     fetchData();
-    const intervalId = setInterval(fetchData, 5000);
-
-    return () => clearInterval(intervalId);
   }, [fetchData]);
 
+  // --- [FITUR BARU] Fungsi untuk menangani klik tombol cari ---
+  const handleSearch = () => {
+    setSearchTerm(searchInput);
+  };
 
   const handleUserClick = async (user) => {
     setIsModalOpen(true);
@@ -159,7 +151,28 @@ const AdminPage = () => {
       case 'manajemen-pendaftar':
         return (
           <>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Manajemen Pendaftar</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manajemen Pendaftar</h1>
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Cari nama atau email..."
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                            className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    </div>
+                    <button
+                        onClick={handleSearch}
+                        className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700"
+                    >
+                        Cari
+                    </button>
+                </div>
+            </div>
             <div className="overflow-x-auto bg-white rounded-lg shadow">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
