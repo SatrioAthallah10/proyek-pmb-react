@@ -70,7 +70,9 @@ const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
               <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Informasi Akademik</h3>
               <DetailItem label="NPM" value={mahasiswa.npm || 'Belum Diterbitkan'} />
               <DetailItem label="Jalur Pendaftaran" value={getJalurPendaftaranName(mahasiswa.jalur_pendaftaran)} />
-              <DetailItem label="Pilihan Kelas" value={mahasiswa.kelas} />
+              {/* --- PERUBAHAN DI SINI --- */}
+              <DetailItem label="Pilihan Kelas" value={mahasiswa.jadwal_kuliah} />
+              {/* --- AKHIR PERUBAHAN --- */}
               <DetailItem label="Program Studi Pilihan" value={mahasiswa.prodi_pilihan} />
               <DetailItem label="Asal Sekolah" value={mahasiswa.nama_sekolah} />
               <DetailItem label="Jurusan" value={mahasiswa.jurusan} />
@@ -126,13 +128,10 @@ const MahasiswaAktifView = () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      // --- [PERUBAHAN DIMULAI DI SINI] ---
-      // URL dikembalikan ke '/kepala-bagian/' untuk menyesuaikan dengan konfigurasi backend Anda.
       const response = await axios.get('http://127.0.0.1:8000/api/kepala-bagian/active-students', {
         headers: { Authorization: `Bearer ${token}` },
         params: { search: currentSearchTerm } // Menggunakan parameter untuk pencarian
       });
-      // --- [PERUBAHAN SELESAI DI SINI] ---
       setMahasiswaAktif(response.data);
     } catch (err) {
       setError('Gagal memuat data mahasiswa aktif.');
@@ -152,18 +151,15 @@ const MahasiswaAktifView = () => {
     setIsModalLoading(true);
     try {
       const token = localStorage.getItem('token');
-      // --- [PERUBAHAN DIMULAI DI SINI] ---
-      // URL dikembalikan ke '/kepala-bagian/' untuk menyesuaikan dengan konfigurasi backend Anda.
       const response = await axios.get(`http://127.0.0.1:8000/api/kepala-bagian/users/${mahasiswaId}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
-      // --- [PERUBAHAN SELESAI DI SINI] ---
       setSelectedMahasiswa(response.data);
     } catch (err) {
         console.error("Gagal mengambil detail mahasiswa:", err);
-        setIsModalOpen(false);
-        // Sebaiknya gunakan notifikasi toast daripada alert
+        // It's better to use a toast notification than an alert
         alert('Tidak dapat mengambil detail mahasiswa. Silakan coba lagi.');
+        setIsModalOpen(false);
     } finally {
         setIsModalLoading(false);
     }
@@ -174,10 +170,10 @@ const MahasiswaAktifView = () => {
     setSelectedMahasiswa(null);
   };
 
-  // Fungsi ini dipanggil saat form di-submit (tombol 'Cari' atau Enter)
+  // This function is called on form submission (clicking 'Cari' or pressing Enter)
   const handleSearch = (e) => {
-    e.preventDefault(); // Mencegah reload halaman
-    fetchMahasiswaAktif(searchTerm); // Memanggil fetch dengan nilai searchTerm saat ini
+    e.preventDefault(); // Prevents page reload
+    fetchMahasiswaAktif(searchTerm); // Calls fetch with the current search term
   };
 
   if (loading) return <div className="text-center p-8">Memuat data mahasiswa aktif...</div>;
