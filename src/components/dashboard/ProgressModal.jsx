@@ -31,7 +31,7 @@ const ProgressItem = ({ title, status }) => {
     );
 };
 
-// --- [FITUR BARU] Komponen untuk menampilkan detail pembayaran ---
+// Komponen untuk menampilkan detail pembayaran
 const PaymentDetails = ({ proofPath, uploadedAt, confirmedBy, confirmedAt }) => {
     if (!proofPath) return null;
 
@@ -103,12 +103,17 @@ const ProgressModal = ({ user, onClose, isLoading }) => {
                 
                 <div className="border-b pb-4 mb-4">
                     <h2 className="text-2xl font-bold text-gray-800">Detail Progres Pendaftar</h2>
-                    <p className="text-gray-600">{user.name} ({user.email})</p>
+                    <p className="text-gray-600 font-medium">{user.name} ({user.email})</p>
+                    {/* --- PERUBAHAN HANYA DI SINI --- */}
+                    <p className="text-sm text-gray-500 mt-1">
+                        {user.jalur_pendaftaran} - Kelas <span className="font-semibold">{user.kelas}</span>
+                    </p>
                 </div>
 
                 {isLoading ? (
                     <div className="text-center py-10">
-                        <p>Memuat data progres...</p>
+                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="mt-4 text-gray-600">Memuat data progres...</p>
                     </div>
                 ) : (
                     <ul>

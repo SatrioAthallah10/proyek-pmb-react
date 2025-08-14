@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaSearch, FaTimes, FaSpinner } from 'react-icons/fa';
 
-// --- [PERUBAHAN DIMULAI DI SINI] ---
-
 // Helper function to format dates WITH time
 const formatDateWithTime = (dateString) => {
   if (!dateString) return 'N/A';
@@ -17,8 +15,6 @@ const formatDateOnly = (dateString) => {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString('id-ID', options);
 };
-
-// --- [PERUBAHAN SELESAI DI SINI] ---
 
 // Helper function to get descriptive registration path names
 const getJalurPendaftaranName = (jalur) => {
@@ -62,7 +58,6 @@ const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
             <dl>
               {/* Section: Data Diri */}
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Data Diri</h3>
-              {/* --- [PERUBAHAN DIMULAI DI SINI] --- */}
               <DetailItem label="Nama Lengkap" value={mahasiswa.name} />
               <DetailItem label="Email" value={mahasiswa.email} />
               <DetailItem label="No. KTP" value={mahasiswa.no_ktp} />
@@ -75,6 +70,7 @@ const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
               <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Informasi Akademik</h3>
               <DetailItem label="NPM" value={mahasiswa.npm || 'Belum Diterbitkan'} />
               <DetailItem label="Jalur Pendaftaran" value={getJalurPendaftaranName(mahasiswa.jalur_pendaftaran)} />
+              <DetailItem label="Pilihan Kelas" value={mahasiswa.kelas} />
               <DetailItem label="Program Studi Pilihan" value={mahasiswa.prodi_pilihan} />
               <DetailItem label="Asal Sekolah" value={mahasiswa.nama_sekolah} />
               <DetailItem label="Jurusan" value={mahasiswa.jurusan} />
@@ -86,7 +82,6 @@ const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
               <DetailItem label="Tanggal Verifikasi Pembayaran" value={formatDateWithTime(mahasiswa.payment_confirmed_at)} />
               <DetailItem label="Diverifikasi Daftar Ulang Oleh" value={mahasiswa.daful_confirmed_by_admin?.name} />
               <DetailItem label="Tanggal Resmi Menjadi Mahasiswa" value={formatDateWithTime(mahasiswa.daful_confirmed_at)} />
-              {/* --- [PERUBAHAN SELESAI DI SINI] --- */}
             </dl>
           )}
         </div>
@@ -131,10 +126,13 @@ const MahasiswaAktifView = () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/api/kepala-bagian/active-students', {
+      // --- [PERUBAHAN DIMULAI DI SINI] ---
+      // URL dikembalikan ke '/kepala-bagian/' untuk menyesuaikan dengan konfigurasi backend Anda.
+      const response = await axios.get('http://127.0.0.1:8000/api/kepala-bagian/active-students', {
         headers: { Authorization: `Bearer ${token}` },
         params: { search: currentSearchTerm } // Menggunakan parameter untuk pencarian
       });
+      // --- [PERUBAHAN SELESAI DI SINI] ---
       setMahasiswaAktif(response.data);
     } catch (err) {
       setError('Gagal memuat data mahasiswa aktif.');
@@ -154,13 +152,17 @@ const MahasiswaAktifView = () => {
     setIsModalLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:8000/api/kepala-bagian/users/${mahasiswaId}`, {
+      // --- [PERUBAHAN DIMULAI DI SINI] ---
+      // URL dikembalikan ke '/kepala-bagian/' untuk menyesuaikan dengan konfigurasi backend Anda.
+      const response = await axios.get(`http://127.0.0.1:8000/api/kepala-bagian/users/${mahasiswaId}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
+      // --- [PERUBAHAN SELESAI DI SINI] ---
       setSelectedMahasiswa(response.data);
     } catch (err) {
         console.error("Gagal mengambil detail mahasiswa:", err);
         setIsModalOpen(false);
+        // Sebaiknya gunakan notifikasi toast daripada alert
         alert('Tidak dapat mengambil detail mahasiswa. Silakan coba lagi.');
     } finally {
         setIsModalLoading(false);
