@@ -1,8 +1,9 @@
 import React from 'react';
-// --- [PERUBAHAN] Tambahkan ikon FaUserGraduate ---
-import { FaTachometerAlt, FaUsers, FaUserGraduate } from 'react-icons/fa';
+import { FaTachometerAlt, FaUsers, FaUserGraduate, FaMoneyCheckAlt } from 'react-icons/fa';
 
-const AdminNav = ({ activeView, setActiveView }) => {
+// --- [PERUBAHAN DIMULAI DI SINI] ---
+// Komponen sekarang menerima 'role' sebagai prop
+const AdminNav = ({ activeView, setActiveView, role }) => {
     const NavButton = ({ viewName, icon, children }) => {
         const isActive = activeView === viewName;
         return (
@@ -20,22 +21,55 @@ const AdminNav = ({ activeView, setActiveView }) => {
         );
     };
 
+    // Fungsi untuk merender tombol navigasi berdasarkan peran
+    const renderNavButtons = () => {
+        switch (role) {
+            case 'owner':
+                // Owner hanya bisa melihat Dashboard Statistik
+                return (
+                    <NavButton viewName="dashboard" icon={<FaTachometerAlt className="mr-2" />}>
+                        Dashboard
+                    </NavButton>
+                );
+            case 'staff':
+                // Staff hanya bisa melihat Konfirmasi Pembayaran
+                return (
+                    <NavButton viewName="konfirmasi-pembayaran" icon={<FaMoneyCheckAlt className="mr-2" />}>
+                        Konfirmasi Pembayaran
+                    </NavButton>
+                );
+            case 'kepala_bagian':
+                // Kepala Bagian bisa melihat semua menu
+                return (
+                    <>
+                        <NavButton viewName="dashboard" icon={<FaTachometerAlt className="mr-2" />}>
+                            Dashboard
+                        </NavButton>
+                        <NavButton viewName="konfirmasi-pembayaran" icon={<FaMoneyCheckAlt className="mr-2" />}>
+                            Konfirmasi Pembayaran
+                        </NavButton>
+                        <NavButton viewName="manajemen-pendaftar" icon={<FaUsers className="mr-2" />}>
+                            Manajemen Pendaftar
+                        </NavButton>
+                        <NavButton viewName="mahasiswa-aktif" icon={<FaUserGraduate className="mr-2" />}>
+                            Mahasiswa Aktif
+                        </NavButton>
+                    </>
+                );
+            default:
+                // Tampilan default jika peran belum terdefinisi
+                return <p className="text-gray-400">Memuat menu...</p>;
+        }
+    };
+
     return (
         <nav className="bg-[#2c3e50] p-3 shadow-md">
             <div className="container mx-auto flex items-center space-x-4 overflow-x-auto">
-                <NavButton viewName="dashboard" icon={<FaTachometerAlt className="mr-2" />}>
-                    Dashboard
-                </NavButton>
-                <NavButton viewName="manajemen-pendaftar" icon={<FaUsers className="mr-2" />}>
-                    Manajemen Pendaftar
-                </NavButton>
-                {/* --- [TOMBOL BARU] --- */}
-                <NavButton viewName="mahasiswa-aktif" icon={<FaUserGraduate className="mr-2" />}>
-                    Mahasiswa Aktif
-                </NavButton>
+                {renderNavButtons()}
             </div>
         </nav>
     );
 };
+// --- [PERUBAHAN SELESAI DI SINI] ---
 
 export default AdminNav;

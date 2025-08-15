@@ -21,20 +21,21 @@ const LoginPage = () => {
         password,
       });
 
-      // --- PERBAIKAN UTAMA DI SINI ---
-      // Kita baca 'access_token' dari response.data, bukan 'token'
       const { user, access_token } = response.data;
 
-      // Pastikan access_token ada sebelum melanjutkan
       if (user && access_token) {
-        // Simpan token dengan nama 'token' agar konsisten dengan AdminPage.jsx
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(user));
 
-        if (user.is_admin) {
+        // --- [PERUBAHAN DIMULAI DI SINI] ---
+        // Mengganti pengecekan 'is_admin' dengan 'role'.
+        // Jika kolom 'role' ada (tidak null), maka pengguna adalah seorang admin.
+        if (user.role) {
           navigate('/admin');
         } else {
-          // Logika redirect untuk user biasa
+        // --- [PERUBAHAN SELESAI DI SINI] ---
+          
+          // Logika redirect untuk user biasa (tidak berubah)
           switch (user.jalur_pendaftaran) {
             case 'RPL':
               navigate('/dashboard-rpl');
