@@ -29,7 +29,7 @@ const LoginPage = () => {
 
         // --- [PERUBAHAN DIMULAI DI SINI] ---
         // Mengganti pengecekan 'is_admin' dengan 'role'.
-        // Jika kolom 'role' ada (tidak null), maka pengguna adalah seorang admin.
+        // Jika kolom 'role' ada nilainya (tidak null), maka pengguna adalah seorang admin.
         if (user.role) {
           navigate('/admin');
         } else {
