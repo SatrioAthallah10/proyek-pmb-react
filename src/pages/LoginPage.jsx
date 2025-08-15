@@ -27,15 +27,13 @@ const LoginPage = () => {
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(user));
 
-        // --- [PERUBAHAN DIMULAI DI SINI] ---
-        // Mengganti pengecekan 'is_admin' dengan 'role'.
-        // Jika kolom 'role' ada nilainya (tidak null), maka pengguna adalah seorang admin.
-        if (user.role) {
+        // --- [PERBAIKAN FINAL] ---
+        // Menyesuaikan 'kepala' menjadi 'kepala_bagian' agar cocok dengan data dari server.
+        const adminRoles = ['admin', 'kepala_bagian', 'staff', 'owner'];
+        
+        if (user.role && adminRoles.includes(user.role)) {
           navigate('/admin');
         } else {
-        // --- [PERUBAHAN SELESAI DI SINI] ---
-          
-          // Logika redirect untuk user biasa (tidak berubah)
           switch (user.jalur_pendaftaran) {
             case 'RPL':
               navigate('/dashboard-rpl');

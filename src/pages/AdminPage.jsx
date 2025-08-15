@@ -6,8 +6,6 @@ import ProgressModal from '../components/dashboard/ProgressModal';
 import MahasiswaAktifView from '../components/dashboard/MahasiswaAktifView';
 import { FaUserPlus, FaUserCheck, FaCreditCard, FaUserGraduate, FaSearch } from 'react-icons/fa';
 
-// --- [PERUBAHAN DIMULAI DI SINI] ---
-
 // Komponen untuk Halaman Statistik (Dilihat oleh Owner & Kepala Bagian)
 const StatistikView = ({ stats, loading, error }) => {
     if (loading) return <div className="text-center p-8">Memuat data statistik...</div>;
@@ -24,10 +22,9 @@ const StatistikView = ({ stats, loading, error }) => {
         </div>
     );
     
-    // Chart component remains the same as before
     const StatChart = ({ data }) => {
         if (!data) return null;
-        const maxValue = data.total_pendaftar || 1; // Avoid division by zero
+        const maxValue = data.total_pendaftar || 1;
         const barData = [
             { label: 'Pendaftaran Awal', value: data.pendaftaran_awal_selesai, color: 'bg-blue-500' },
             { label: 'Pembayaran', value: data.pembayaran_selesai, color: 'bg-green-500' },
@@ -72,7 +69,7 @@ const StatistikView = ({ stats, loading, error }) => {
 };
 
 // Komponen untuk Halaman Konfirmasi Pembayaran (Dilihat oleh Staff & Kepala Bagian)
-const KonfirmasiPembayaranView = ({ users, loading, error, onConfirm, onUserClick, searchTerm, setSearchTerm }) => {
+const KonfirmasiPembayaranView = ({ users, loading, error, onConfirm }) => {
     if (loading) return <div className="text-center p-8">Memuat data pendaftar...</div>;
     if (error) return <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>;
 
@@ -80,7 +77,6 @@ const KonfirmasiPembayaranView = ({ users, loading, error, onConfirm, onUserClic
         <>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Konfirmasi Pembayaran</h1>
-                {/* Search functionality can be added here if needed */}
             </div>
             <div className="overflow-x-auto bg-white rounded-lg shadow">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -121,7 +117,7 @@ const KonfirmasiPembayaranView = ({ users, loading, error, onConfirm, onUserClic
 };
 
 // Komponen untuk Manajemen Pendaftar (Hanya Dilihat oleh Kepala Bagian)
-const ManajemenPendaftarView = ({ users, loading, error, onConfirm, onUserClick, searchTerm, setSearchInput, handleSearch }) => {
+const ManajemenPendaftarView = ({ users, loading, error, onConfirm, onUserClick, setSearchInput, handleSearch }) => {
     const StatusIcon = ({ isConfirmed }) => (
         isConfirmed ? <span className="text-green-500">✔️ Lunas</span> : <span className="text-red-500">❌ Belum</span>
     );
@@ -196,7 +192,7 @@ const AdminPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [adminUser, setAdminUser] = useState(null);
-    const [activeView, setActiveView] = useState(''); // Dikosongkan dulu, akan diisi di useEffect
+    const [activeView, setActiveView] = useState('');
 
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -210,14 +206,10 @@ const AdminPage = () => {
         setError(null);
         try {
             const token = localStorage.getItem('token');
-            let endpoint = '';
-            
-            // Tentukan endpoint berdasarkan peran
-            if (role === 'kepala_bagian') {
-                endpoint = 'http://localhost:8000/api/admin/users';
-            } else if (role === 'staff') {
-                endpoint = 'http://localhost:8000/api/admin/users-for-confirmation';
-            }
+            // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
+            const endpoint = role === 'kepala_bagian' || role === 'staff' 
+                ? 'http://localhost:8000/api/admin/users' 
+                : '';
 
             if (endpoint) {
                 const usersResponse = await axios.get(endpoint, {
@@ -253,9 +245,9 @@ const AdminPage = () => {
         const loggedInUser = JSON.parse(localStorage.getItem('user'));
         setAdminUser(loggedInUser);
 
-        // Tentukan view default berdasarkan peran
         if (loggedInUser?.role) {
             let defaultView = '';
+            // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
             if (loggedInUser.role === 'owner') defaultView = 'dashboard';
             else if (loggedInUser.role === 'staff') defaultView = 'konfirmasi-pembayaran';
             else if (loggedInUser.role === 'kepala_bagian') defaultView = 'dashboard';
@@ -263,7 +255,6 @@ const AdminPage = () => {
         }
     }, []);
 
-    // useEffect terpisah untuk fetch data ketika activeView berubah
     useEffect(() => {
         if (!adminUser?.role) return;
 
@@ -279,7 +270,7 @@ const AdminPage = () => {
     };
 
     const handleUserClick = async (user) => {
-        // Hanya Kepala Bagian yang bisa melihat detail lengkap
+        // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
         if (adminUser?.role !== 'kepala_bagian') return;
 
         setIsModalOpen(true);
@@ -305,7 +296,7 @@ const AdminPage = () => {
             const url = `http://localhost:8000/api/admin/users/${userId}/${confirmationType}`;
             await axios.put(url, {}, { headers: { Authorization: `Bearer ${token}` } });
             alert('Konfirmasi berhasil!');
-            fetchData(adminUser.role); // Refresh data
+            fetchData(adminUser.role);
         } catch (err) {
             alert('Konfirmasi gagal. Pastikan Anda memiliki hak akses.');
             console.error(err);
@@ -318,28 +309,32 @@ const AdminPage = () => {
 
         switch (activeView) {
             case 'dashboard':
+                // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
                 if (role === 'owner' || role === 'kepala_bagian') {
                     return <StatistikView stats={stats} loading={loading} error={error} />;
                 }
-                return null;
+                return <div className="text-center p-8 text-red-500">Anda tidak memiliki akses ke halaman ini.</div>;
             
             case 'konfirmasi-pembayaran':
+                // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
                 if (role === 'staff' || role === 'kepala_bagian') {
                     return <KonfirmasiPembayaranView users={users} loading={loading} error={error} onConfirm={handleConfirm} />;
                 }
-                return null;
+                return <div className="text-center p-8 text-red-500">Anda tidak memiliki akses ke halaman ini.</div>;
 
             case 'manajemen-pendaftar':
+                // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
                 if (role === 'kepala_bagian') {
-                    return <ManajemenPendaftarView users={users} loading={loading} error={error} onConfirm={handleConfirm} onUserClick={handleUserClick} searchTerm={searchTerm} setSearchInput={setSearchInput} handleSearch={handleSearch} />;
+                    return <ManajemenPendaftarView users={users} loading={loading} error={error} onConfirm={handleConfirm} onUserClick={handleUserClick} setSearchInput={setSearchInput} handleSearch={handleSearch} />;
                 }
-                return null;
+                return <div className="text-center p-8 text-red-500">Anda tidak memiliki akses ke halaman ini.</div>;
 
             case 'mahasiswa-aktif':
+                // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
                 if (role === 'kepala_bagian') {
                     return <MahasiswaAktifView />;
                 }
-                return null;
+                return <div className="text-center p-8 text-red-500">Anda tidak memiliki akses ke halaman ini.</div>;
 
             default:
                 return <div className="text-center p-8">Selamat datang, {adminUser.name}. Silakan pilih menu.</div>;
@@ -349,7 +344,6 @@ const AdminPage = () => {
     return (
         <div className="bg-gray-100 min-h-screen">
             <DashboardHeader user={adminUser} />
-            {/* Mengirimkan peran ke AdminNav agar bisa menampilkan menu yang sesuai */}
             <AdminNav activeView={activeView} setActiveView={setActiveView} role={adminUser?.role} />
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
                 {renderView()}
@@ -367,5 +361,3 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
-
-// --- [PERUBAHAN SELESAI DI SINI] ---
