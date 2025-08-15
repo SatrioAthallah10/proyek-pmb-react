@@ -70,9 +70,7 @@ const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
               <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Informasi Akademik</h3>
               <DetailItem label="NPM" value={mahasiswa.npm || 'Belum Diterbitkan'} />
               <DetailItem label="Jalur Pendaftaran" value={getJalurPendaftaranName(mahasiswa.jalur_pendaftaran)} />
-              {/* --- PERUBAHAN DI SINI --- */}
               <DetailItem label="Pilihan Kelas" value={mahasiswa.jadwal_kuliah} />
-              {/* --- AKHIR PERUBAHAN --- */}
               <DetailItem label="Program Studi Pilihan" value={mahasiswa.prodi_pilihan} />
               <DetailItem label="Asal Sekolah" value={mahasiswa.nama_sekolah} />
               <DetailItem label="Jurusan" value={mahasiswa.jurusan} />
@@ -128,7 +126,8 @@ const MahasiswaAktifView = () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://127.0.0.1:8000/api/kepala-bagian/active-students', {
+      // --- [PERBAIKAN] Mengubah URL endpoint ke rute admin yang benar ---
+      const response = await axios.get('http://127.0.0.1:8000/api/admin/active-students', {
         headers: { Authorization: `Bearer ${token}` },
         params: { search: currentSearchTerm } // Menggunakan parameter untuk pencarian
       });
@@ -151,13 +150,13 @@ const MahasiswaAktifView = () => {
     setIsModalLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://127.0.0.1:8000/api/kepala-bagian/users/${mahasiswaId}`, {
+       // --- [PERBAIKAN] Mengubah URL endpoint ke rute admin yang benar ---
+      const response = await axios.get(`http://127.0.0.1:8000/api/admin/users/${mahasiswaId}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
       setSelectedMahasiswa(response.data);
     } catch (err) {
         console.error("Gagal mengambil detail mahasiswa:", err);
-        // It's better to use a toast notification than an alert
         alert('Tidak dapat mengambil detail mahasiswa. Silakan coba lagi.');
         setIsModalOpen(false);
     } finally {
