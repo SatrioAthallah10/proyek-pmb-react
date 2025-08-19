@@ -2,8 +2,8 @@
  * File untuk menyimpan data tiruan (mock data) yang digunakan di seluruh aplikasi.
  */
 
-// PERBAIKAN: Pastikan kata kunci 'export' ada di sini.
-export const prodiData = [
+// Data ini digunakan untuk tabel di HomePage yang menampilkan peminat dan daya tampung.
+export const prodiPeminatData = [
     { no: 1, name: 'Teknik Mesin', peminat: 276, tampung: 181, sisa: '1%' },
     { no: 2, name: 'Teknik Industri', peminat: 167, tampung: 102, sisa: '3%' },
     { no: 3, name: 'Teknik Kimia', peminat: 99, tampung: 62, sisa: '3%' },
@@ -17,7 +17,21 @@ export const prodiData = [
     { no: 11, name: 'Sistem Informasi', peminat: 125, tampung: 67, sisa: '2%' },
 ];
 
-// PERBAIKAN: Pastikan kata kunci 'export' ada di sini juga.
+// Data ini digunakan untuk dropdown/select di form, hanya butuh nama prodi.
+export const programStudi = [
+    { id: 1, nama: 'Teknik Mesin' },
+    { id: 2, nama: 'Teknik Industri' },
+    { id: 3, nama: 'Teknik Kimia' },
+    { id: 4, nama: 'Teknik Pertambangan' },
+    { id: 5, nama: 'Teknik Perkapalan' },
+    { id: 6, nama: 'Teknik Sipil' },
+    { id: 7, nama: 'Arsitektur' },
+    { id: 8, nama: 'Teknik Lingkungan' },
+    { id: 9, nama: 'Teknik Elektro' },
+    { id: 10, nama: 'Teknik Informatika' },
+    { id: 11, nama: 'Sistem Informasi' },
+];
+
 export const timelineSteps = [
     { title: 'Formulir Pendaftaran', status: 'Sudah Mengisi Formulir', completed: true },
     { title: 'Pembayaran Form Daftar', status: 'Pembayaran Sudah Dikonfirmasi', completed: true },

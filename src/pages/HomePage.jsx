@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaBookOpen, FaGraduationCap, FaUser, FaPlus, FaMinus } from 'react-icons/fa';
-import { prodiData } from '../data/mockData.js';
+// --- [PERBAIKAN] Mengubah nama variabel yang diimpor ---
+import { prodiPeminatData } from '../data/mockData.js';
 
 // --- DATA BARU UNTUK FITUR TAMBAHAN ---
 const fakultasData = [
@@ -316,7 +317,8 @@ const HomePage = ({ setCurrentPage }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {prodiData.map(item => (
+                                {/* --- [PERBAIKAN] Mengubah nama variabel yang digunakan untuk map --- */}
+                                {prodiPeminatData.map(item => (
                                     <tr key={item.no} className="bg-white border-b hover:bg-gray-50">
                                         <td className="px-6 py-4">{item.no}</td>
                                         <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>

@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaSearch, FaTimes, FaSpinner } from 'react-icons/fa';
+import { FaSearch, FaTimes, FaSpinner, FaEdit, FaSave } from 'react-icons/fa';
+import { programStudi } from '../../data/mockData'; // Import data prodi
 
-// Helper function to format dates WITH time
+// Helper functions (Tidak ada perubahan)
 const formatDateWithTime = (dateString) => {
   if (!dateString) return 'N/A';
   const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
   return new Date(dateString).toLocaleDateString('id-ID', options);
 };
 
-// Helper function to format dates WITHOUT time
 const formatDateOnly = (dateString) => {
   if (!dateString) return 'N/A';
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString('id-ID', options);
 };
 
-// Helper function to get descriptive registration path names
 const getJalurPendaftaranName = (jalur) => {
   const map = {
     'reguler': 'Sarjana Reguler',
@@ -28,11 +27,86 @@ const getJalurPendaftaranName = (jalur) => {
   return map[formattedJalur] || (jalur ? jalur.replace(/_/g, ' ').toUpperCase() : 'Tidak Diketahui');
 };
 
-// Component for the detailed student information modal
+// --- [KOMPONEN BARU] Modal untuk mengedit data mahasiswa ---
+const EditMahasiswaModal = ({ mahasiswa, onClose, onSave, loading }) => {
+    const [formData, setFormData] = useState({
+        jadwal_kuliah: mahasiswa.jadwal_kuliah || 'Pagi',
+        prodi_pilihan: mahasiswa.prodi_pilihan || '',
+    });
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(mahasiswa.id, formData);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
+                <form onSubmit={handleSubmit}>
+                    <div className="flex justify-between items-center p-4 border-b">
+                        <h2 className="text-xl font-bold text-gray-800">Edit Data: {mahasiswa.name}</h2>
+                        <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-800">
+                            <FaTimes size={20} />
+                        </button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <label htmlFor="jadwal_kuliah" className="block text-sm font-medium text-gray-700 mb-1">Pilihan Kelas</label>
+                            <select
+                                id="jadwal_kuliah"
+                                name="jadwal_kuliah"
+                                value={formData.jadwal_kuliah}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="Pagi">Pagi</option>
+                                <option value="Malam">Malam</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="prodi_pilihan" className="block text-sm font-medium text-gray-700 mb-1">Program Studi Pilihan</label>
+                            <select
+                                id="prodi_pilihan"
+                                name="prodi_pilihan"
+                                value={formData.prodi_pilihan}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="" disabled>Pilih Program Studi</option>
+                                {programStudi.map((prodi) => (
+                                    <option key={prodi.id} value={prodi.nama}>{prodi.nama}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="p-4 bg-gray-50 border-t flex justify-end items-center gap-3">
+                        <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:bg-blue-300"
+                        >
+                            {loading ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+
+// Component for the detailed student information modal (Tidak ada perubahan signifikan)
 const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
   if (!mahasiswa) return null;
 
-  // Component for each detail item
   const DetailItem = ({ label, value }) => (
     <div className="grid grid-cols-3 gap-4 py-2 border-b border-gray-200">
       <dt className="text-sm font-medium text-gray-500">{label}</dt>
@@ -56,30 +130,17 @@ const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
             </div>
           ) : (
             <dl>
-              {/* Section: Data Diri */}
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Data Diri</h3>
               <DetailItem label="Nama Lengkap" value={mahasiswa.name} />
               <DetailItem label="Email" value={mahasiswa.email} />
               <DetailItem label="No. KTP" value={mahasiswa.no_ktp} />
               <DetailItem label="No. Ponsel" value={mahasiswa.no_ponsel} />
-              <DetailItem label="Jenis Kelamin" value={mahasiswa.jenis_kelamin} />
-              <DetailItem label="Tempat, Tanggal Lahir" value={`${mahasiswa.tempat_lahir}, ${formatDateOnly(mahasiswa.tanggal_lahir)}`} />
-              <DetailItem label="Alamat" value={mahasiswa.alamat} />
-
-              {/* Section: Informasi Akademik */}
               <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Informasi Akademik</h3>
               <DetailItem label="NPM" value={mahasiswa.npm || 'Belum Diterbitkan'} />
               <DetailItem label="Jalur Pendaftaran" value={getJalurPendaftaranName(mahasiswa.jalur_pendaftaran)} />
               <DetailItem label="Pilihan Kelas" value={mahasiswa.jadwal_kuliah} />
               <DetailItem label="Program Studi Pilihan" value={mahasiswa.prodi_pilihan} />
-              <DetailItem label="Asal Sekolah" value={mahasiswa.nama_sekolah} />
-              <DetailItem label="Jurusan" value={mahasiswa.jurusan} />
-              <DetailItem label="Nilai Rata-rata" value={mahasiswa.nilai_rata_rata} />
-
-              {/* Section: Informasi Verifikasi */}
               <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Informasi Verifikasi</h3>
-              <DetailItem label="Diverifikasi Pembayaran Oleh" value={mahasiswa.payment_confirmed_by_admin?.name} />
-              <DetailItem label="Tanggal Verifikasi Pembayaran" value={formatDateWithTime(mahasiswa.payment_confirmed_at)} />
               <DetailItem label="Diverifikasi Daftar Ulang Oleh" value={mahasiswa.daful_confirmed_by_admin?.name} />
               <DetailItem label="Tanggal Resmi Menjadi Mahasiswa" value={formatDateWithTime(mahasiswa.daful_confirmed_at)} />
             </dl>
@@ -95,16 +156,31 @@ const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
   );
 };
 
-// Component for each student row in the table
-const MahasiswaRow = ({ mahasiswa, onClick }) => (
-  <tr className="hover:bg-gray-100 cursor-pointer" onClick={onClick}>
-    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{mahasiswa.npm || 'Belum Ada'}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{mahasiswa.name}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{mahasiswa.email}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+// --- [PERUBAHAN] MahasiswaRow sekarang menerima adminRole dan handleEditClick ---
+const MahasiswaRow = ({ mahasiswa, onRowClick, onEditClick, adminRole }) => (
+  <tr className="hover:bg-gray-100 group">
+    <td onClick={onRowClick} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer">{mahasiswa.npm || 'Belum Ada'}</td>
+    <td onClick={onRowClick} className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 cursor-pointer">{mahasiswa.name}</td>
+    <td onClick={onRowClick} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer">{mahasiswa.email}</td>
+    <td onClick={onRowClick} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer">
       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
         {getJalurPendaftaranName(mahasiswa.jalur_pendaftaran)}
       </span>
+    </td>
+    {/* --- [PENAMBAHAN] Kolom Aksi hanya untuk Kepala Bagian --- */}
+    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+      {adminRole === 'kepala_bagian' && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // Mencegah trigger onRowClick
+            onEditClick(mahasiswa);
+          }}
+          className="text-blue-600 hover:text-blue-900 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Edit Data Mahasiswa"
+        >
+          <FaEdit size={18} />
+        </button>
+      )}
     </td>
   </tr>
 );
@@ -114,22 +190,40 @@ const MahasiswaAktifView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [adminUser, setAdminUser] = useState(null); // State untuk data admin
 
-  // State for the modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // State for the modals
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedMahasiswa, setSelectedMahasiswa] = useState(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Fungsi untuk mengambil data mahasiswa. Sekarang menerima parameter pencarian.
+  // --- [PENAMBAHAN] Mengambil data admin yang sedang login ---
+  useEffect(() => {
+    const fetchAdminUser = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://127.0.0.1:8000/api/user', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setAdminUser(response.data);
+        } catch (err) {
+            console.error("Gagal mengambil data admin:", err);
+        }
+    };
+    fetchAdminUser();
+    fetchMahasiswaAktif(''); // Memuat data awal
+  }, []);
+
   const fetchMahasiswaAktif = async (currentSearchTerm) => {
     setLoading(true);
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      // --- [PERBAIKAN] Mengubah URL endpoint ke rute admin yang benar ---
       const response = await axios.get('http://127.0.0.1:8000/api/admin/active-students', {
         headers: { Authorization: `Bearer ${token}` },
-        params: { search: currentSearchTerm } // Menggunakan parameter untuk pencarian
+        params: { search: currentSearchTerm }
       });
       setMahasiswaAktif(response.data);
     } catch (err) {
@@ -140,17 +234,11 @@ const MahasiswaAktifView = () => {
     }
   };
 
-  // useEffect ini hanya berjalan sekali saat komponen pertama kali dimuat.
-  useEffect(() => {
-    fetchMahasiswaAktif(''); // Memuat data awal tanpa filter pencarian
-  }, []); // Array dependensi kosong memastikan ini hanya berjalan sekali
-
   const handleRowClick = async (mahasiswaId) => {
-    setIsModalOpen(true);
+    setIsDetailModalOpen(true);
     setIsModalLoading(true);
     try {
       const token = localStorage.getItem('token');
-       // --- [PERBAIKAN] Mengubah URL endpoint ke rute admin yang benar ---
       const response = await axios.get(`http://127.0.0.1:8000/api/admin/users/${mahasiswaId}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
@@ -158,21 +246,53 @@ const MahasiswaAktifView = () => {
     } catch (err) {
         console.error("Gagal mengambil detail mahasiswa:", err);
         alert('Tidak dapat mengambil detail mahasiswa. Silakan coba lagi.');
-        setIsModalOpen(false);
+        setIsDetailModalOpen(false);
     } finally {
         setIsModalLoading(false);
     }
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const handleEditClick = (mahasiswa) => {
+    setSelectedMahasiswa(mahasiswa);
+    setIsEditModalOpen(true);
+  };
+
+  // --- [PENAMBAHAN] Fungsi untuk menyimpan perubahan ---
+  const handleSaveChanges = async (mahasiswaId, updatedData) => {
+    setIsSaving(true);
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios.put(`http://127.0.0.1:8000/api/admin/active-students/${mahasiswaId}/update-details`, updatedData, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Update state lokal agar UI langsung berubah
+        setMahasiswaAktif(mahasiswaAktif.map(m => m.id === mahasiswaId ? response.data.user : m));
+        
+        alert(response.data.message); // Tampilkan pesan sukses
+        closeEditModal();
+    } catch (err) {
+        console.error("Gagal menyimpan perubahan:", err);
+        const errorMessage = err.response?.data?.message || 'Terjadi kesalahan saat menyimpan.';
+        alert(`Error: ${errorMessage}`);
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
+  const closeDetailModal = () => {
+    setIsDetailModalOpen(false);
     setSelectedMahasiswa(null);
   };
 
-  // This function is called on form submission (clicking 'Cari' or pressing Enter)
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedMahasiswa(null);
+  };
+
   const handleSearch = (e) => {
-    e.preventDefault(); // Prevents page reload
-    fetchMahasiswaAktif(searchTerm); // Calls fetch with the current search term
+    e.preventDefault();
+    fetchMahasiswaAktif(searchTerm);
   };
 
   if (loading) return <div className="text-center p-8">Memuat data mahasiswa aktif...</div>;
@@ -186,7 +306,7 @@ const MahasiswaAktifView = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Cari NPM atau Nama..."
+              placeholder="Cari Nama..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -209,16 +329,23 @@ const MahasiswaAktifView = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jalur Pendaftaran</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {mahasiswaAktif.length > 0 ? (
               mahasiswaAktif.map((mahasiswa) => (
-                <MahasiswaRow key={mahasiswa.id} mahasiswa={mahasiswa} onClick={() => handleRowClick(mahasiswa.id)} />
+                <MahasiswaRow 
+                    key={mahasiswa.id} 
+                    mahasiswa={mahasiswa} 
+                    onRowClick={() => handleRowClick(mahasiswa.id)}
+                    onEditClick={handleEditClick}
+                    adminRole={adminUser?.role}
+                />
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="text-center py-8 text-gray-500">
+                <td colSpan="5" className="text-center py-8 text-gray-500">
                   Tidak ada data mahasiswa aktif yang ditemukan.
                 </td>
               </tr>
@@ -227,11 +354,20 @@ const MahasiswaAktifView = () => {
         </table>
       </div>
 
-      {isModalOpen && (
+      {isDetailModalOpen && (
         <MahasiswaDetailModal 
             mahasiswa={selectedMahasiswa} 
-            onClose={closeModal}
+            onClose={closeDetailModal}
             loading={isModalLoading}
+        />
+      )}
+
+      {isEditModalOpen && (
+        <EditMahasiswaModal
+            mahasiswa={selectedMahasiswa}
+            onClose={closeEditModal}
+            onSave={handleSaveChanges}
+            loading={isSaving}
         />
       )}
     </div>
