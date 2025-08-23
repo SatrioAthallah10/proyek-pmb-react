@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Import axios
+import axios from 'axios';
 import { FaTimes } from 'react-icons/fa';
 
-// Komponen utilitas FormInput, FormSelect, FormTextarea tetap sama
 const FormInput = ({ label, className = '', ...props }) => (
     <div className={className}>
         <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
@@ -26,8 +25,6 @@ const FormTextarea = ({ label, className = '', ...props }) => (
     </div>
 );
 
-
-// Menerima 'user' sebagai prop
 const DaftarUlangView = ({ user, isRpl = false }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({});
@@ -36,7 +33,6 @@ const DaftarUlangView = ({ user, isRpl = false }) => {
     const [error, setError] = useState('');
     const [showAlert, setShowAlert] = useState(true);
 
-    // Mengisi form dengan data dari prop 'user'
     useEffect(() => {
         if (user) {
             setFormData(user);
@@ -52,15 +48,56 @@ const DaftarUlangView = ({ user, isRpl = false }) => {
         setIsLoading(true);
         setMessage('');
         setError('');
-        const token = localStorage.getItem('token'); // Menggunakan kunci 'token' yang benar
+        const token = localStorage.getItem('token');
+
+        // --- [PERBAIKAN] ---
+        // Membuat objek baru dengan nama kunci yang sesuai dengan kolom database
+        const dataToSend = {
+            prodi_pilihan: formData.prodi_pilihan,
+            jadwal_kuliah: formData.jadwal_kuliah,
+            tahun_ajaran: formData.tahun_ajaran,
+            nisn: formData.nisn,
+            kewarganegaraan: formData.kewarganegaraan,
+            no_telp_rumah: formData.no_telp_rumah,
+            alamat: formData.alamat,
+            dusun: formData.dusun,
+            rt: formData.rt,
+            rw: formData.rw,
+            kelurahan: formData.kelurahan,
+            kode_pos: formData.kode_pos,
+            kecamatan: formData.kecamatan,
+            kota: formData.kota,
+            provinsi: formData.provinsi,
+            agama: formData.agama,
+            jenis_tinggal: formData.jenis_tinggal,
+            alat_transportasi: formData.alat_transportasi,
+            nama_sekolah: formData.nama_sekolah,
+            jurusan: formData.jurusan, // Frontend mengirim 'jurusan'
+            status_sekolah: formData.status_sekolah,
+            alamat_sekolah: formData.alamat_sekolah,
+            kota_sekolah: formData.kota_sekolah,
+            nilai_rata_rata: formData.nilai_rata_rata,
+            nama_ayah: formData.nama_ayah,
+            nik_ayah: formData.nik_ayah,
+            tanggal_lahir_ayah: formData.tanggal_lahir_ayah,
+            pendidikan_ayah: formData.pendidikan_ayah,
+            pekerjaan_ayah: formData.pekerjaan_ayah,
+            penghasilan_ayah: formData.penghasilan_ayah,
+            nama_ibu: formData.nama_ibu,
+            nik_ibu: formData.nik_ibu,
+            tanggal_lahir_ibu: formData.tanggal_lahir_ibu,
+            pendidikan_ibu: formData.pendidikan_ibu,
+            pekerjaan_ibu: formData.pekerjaan_ibu,
+            penghasilan_ibu: formData.penghasilan_ibu,
+            nomor_orang_tua: formData.nomor_orang_tua,
+        };
 
         const apiUrl = isRpl 
             ? 'http://127.0.0.1:8000/api/rpl/submit-daftar-ulang' 
             : 'http://127.0.0.1:8000/api/submit-daftar-ulang';
 
         try {
-            // Mengganti fetch dengan axios
-            const response = await axios.post(apiUrl, formData, {
+            const response = await axios.post(apiUrl, dataToSend, { // Mengirim dataToSend
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
@@ -86,7 +123,6 @@ const DaftarUlangView = ({ user, isRpl = false }) => {
     const steps = ['Prodi', 'Data Diri', 'Asal Sekolah', 'Data Wali'];
 
     const renderStepContent = () => {
-        // ... (Fungsi renderStepContent tidak berubah)
         switch (step) {
             case 1:
                 return (

@@ -97,7 +97,7 @@ const EditMahasiswaModal = ({ mahasiswa, onClose, onSave, loading }) => {
 };
 
 
-// --- [PERBAIKAN] Melengkapi modal detail mahasiswa ---
+// Modal detail mahasiswa
 const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
   if (!mahasiswa) return null;
 
@@ -136,20 +136,24 @@ const MahasiswaDetailModal = ({ mahasiswa, onClose, loading }) => {
               <DetailItem label="Pilihan Kelas" value={mahasiswa.jadwal_kuliah} />
               <DetailItem label="Program Studi Pilihan" value={mahasiswa.prodi_pilihan} />
               <DetailItem label="Asal Sekolah" value={mahasiswa.asal_sekolah} />
-              <DetailItem label="Jurusan Sekolah" value={mahasiswa.jurusan_sekolah} />
-              <DetailItem label="Rata-rata Nilai" value={mahasiswa.rata_rata_nilai} />
+              <DetailItem label="Jurusan Sekolah" value={mahasiswa.jurusan} />
+              <DetailItem label="Rata-rata Nilai" value={mahasiswa.nilai_rata_rata} />
 
               <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Informasi Verifikasi</h3>
               <div className="border border-gray-200 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-600 mb-2">Tahap 1: Pembayaran Formulir</h4>
                 <DetailItem label="Diverifikasi Oleh" value={mahasiswa.payment_confirmed_by_admin?.name} />
-                <DetailItem label="Waktu Pengiriman Bukti" value={formatDateWithTime(mahasiswa.bukti_pembayaran_submitted_at)} />
+                {/* --- [PERBAIKAN DI SINI] --- */}
+                <DetailItem label="Waktu Pengiriman Bukti" value={formatDateWithTime(mahasiswa.payment_uploaded_at)} />
+                {/* ------------------------- */}
                 <DetailItem label="Waktu Verifikasi" value={formatDateWithTime(mahasiswa.payment_confirmed_at)} />
               </div>
               <div className="border border-gray-200 rounded-lg p-4 mt-4">
                 <h4 className="font-semibold text-gray-600 mb-2">Tahap 2: Pembayaran Daftar Ulang</h4>
                 <DetailItem label="Diverifikasi Oleh" value={mahasiswa.daful_confirmed_by_admin?.name} />
-                <DetailItem label="Waktu Pengiriman Bukti" value={formatDateWithTime(mahasiswa.bukti_daful_submitted_at)} />
+                {/* --- [PERBAIKAN DI SINI] --- */}
+                <DetailItem label="Waktu Pengiriman Bukti" value={formatDateWithTime(mahasiswa.daful_uploaded_at)} />
+                {/* ------------------------- */}
                 <DetailItem label="Waktu Verifikasi (Resmi)" value={formatDateWithTime(mahasiswa.daful_confirmed_at)} />
               </div>
             </dl>
