@@ -4,55 +4,151 @@ import DashboardHeader from '../components/dashboard/DashboardHeader';
 import AdminNav from '../components/dashboard/AdminNav';
 import ProgressModal from '../components/dashboard/ProgressModal';
 import MahasiswaAktifView from '../components/dashboard/MahasiswaAktifView';
-import { FaUserPlus, FaUserCheck, FaCreditCard, FaUserGraduate, FaSearch } from 'react-icons/fa';
+import { FaUserPlus, FaUserCheck, FaCreditCard, FaUserGraduate, FaSearch, FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
 
-// Komponen untuk Halaman Statistik (Dilihat oleh Owner & Kepala Bagian)
+// --- [PERBAIKAN FINAL] Komponen-komponen kecil dipindahkan ke luar dari komponen induknya ---
+
+// Komponen InputField untuk form
+const InputField = ({ name, type, placeholder, icon, value, onChange, error }) => (
+    <div className="mb-4">
+        <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                {icon}
+            </span>
+            <input
+                type={type}
+                name={name}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${error ? 'border-red-500 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-500'}`}
+                required
+            />
+        </div>
+        {error && <p className="text-red-500 text-xs mt-1">{error[0]}</p>}
+    </div>
+);
+
+// Komponen StatCard untuk statistik
+const StatCard = ({ icon, title, value, color }) => (
+    <div className={`bg-white p-6 rounded-lg shadow-md flex items-center ${color}`}>
+        <div className="mr-4 text-3xl">{icon}</div>
+        <div>
+            <p className="text-gray-500 text-sm font-medium">{title}</p>
+            <p className="text-2xl font-bold text-gray-800">{value}</p>
+        </div>
+    </div>
+);
+
+// Komponen StatChart untuk statistik
+const StatChart = ({ data }) => {
+    if (!data) return null;
+    const maxValue = data.total_pendaftar || 1;
+    const barData = [
+        { label: 'Pendaftaran Awal', value: data.pendaftaran_awal_selesai, color: 'bg-blue-500' },
+        { label: 'Pembayaran', value: data.pembayaran_selesai, color: 'bg-green-500' },
+        { label: 'Daftar Ulang', value: data.daftar_ulang_selesai, color: 'bg-indigo-500' },
+    ];
+
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="font-bold text-lg mb-4">Progres Pendaftaran</h3>
+            <div className="space-y-4">
+                {barData.map(item => (
+                    <div key={item.label}>
+                        <div className="flex justify-between items-center mb-1 text-sm">
+                            <span className="font-medium text-gray-600">{item.label}</span>
+                            <span className="text-gray-500">{item.value} / {maxValue}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-4">
+                            <div 
+                                className={`${item.color} h-4 rounded-full`} 
+                                style={{ width: `${(item.value / maxValue) * 100}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// Komponen StatusIcon untuk tabel
+const StatusIcon = ({ isConfirmed }) => (
+    isConfirmed ? <span className="text-green-500">✔️ Lunas</span> : <span className="text-red-500">❌ Belum</span>
+);
+
+
+// Komponen untuk form tambah staff
+const TambahStaffView = () => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+    });
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        setSuccess('');
+
+        if (formData.password !== formData.password_confirmation) {
+            setError({ password_confirmation: ['Konfirmasi password tidak cocok.'] });
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post('http://localhost:8000/api/admin/register-staff', formData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSuccess('Akun staff berhasil dibuat!');
+            setFormData({ name: '', email: '', password: '', password_confirmation: '' }); // Reset form
+        } catch (err) {
+            if (err.response && err.response.data && err.response.data.errors) {
+                setError(err.response.data.errors);
+            } else {
+                setError({ general: ['Terjadi kesalahan. Silakan coba lagi.'] });
+            }
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-lg mx-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 text-center">Daftarkan Akun Staff Baru</h1>
+            {success && <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert"><p>{success}</p></div>}
+            {error?.general && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert"><p>{error.general[0]}</p></div>}
+            <form onSubmit={handleSubmit}>
+                <InputField name="name" type="text" placeholder="Nama Lengkap" icon={<FaUser />} value={formData.name} onChange={handleChange} error={error?.name} />
+                <InputField name="email" type="email" placeholder="Alamat Email" icon={<FaEnvelope />} value={formData.email} onChange={handleChange} error={error?.email} />
+                <InputField name="password" type="password" placeholder="Password" icon={<FaLock />} value={formData.password} onChange={handleChange} error={error?.password} />
+                <InputField name="password_confirmation" type="password" placeholder="Konfirmasi Password" icon={<FaLock />} value={formData.password_confirmation} onChange={handleChange} error={error?.password_confirmation} />
+                <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors">
+                    {loading ? 'Mendaftarkan...' : 'Daftarkan Staff'}
+                </button>
+            </form>
+        </div>
+    );
+};
+
+// Komponen untuk Halaman Statistik
 const StatistikView = ({ stats, loading, error }) => {
     if (loading) return <div className="text-center p-8">Memuat data statistik...</div>;
     if (error) return <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>;
     if (!stats) return <div className="text-center p-8">Data statistik tidak tersedia.</div>;
-
-    const StatCard = ({ icon, title, value, color }) => (
-        <div className={`bg-white p-6 rounded-lg shadow-md flex items-center ${color}`}>
-            <div className="mr-4 text-3xl">{icon}</div>
-            <div>
-                <p className="text-gray-500 text-sm font-medium">{title}</p>
-                <p className="text-2xl font-bold text-gray-800">{value}</p>
-            </div>
-        </div>
-    );
-    
-    const StatChart = ({ data }) => {
-        if (!data) return null;
-        const maxValue = data.total_pendaftar || 1;
-        const barData = [
-            { label: 'Pendaftaran Awal', value: data.pendaftaran_awal_selesai, color: 'bg-blue-500' },
-            { label: 'Pembayaran', value: data.pembayaran_selesai, color: 'bg-green-500' },
-            { label: 'Daftar Ulang', value: data.daftar_ulang_selesai, color: 'bg-indigo-500' },
-        ];
-    
-        return (
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="font-bold text-lg mb-4">Progres Pendaftaran</h3>
-                <div className="space-y-4">
-                    {barData.map(item => (
-                        <div key={item.label}>
-                            <div className="flex justify-between items-center mb-1 text-sm">
-                                <span className="font-medium text-gray-600">{item.label}</span>
-                                <span className="text-gray-500">{item.value} / {maxValue}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                                <div 
-                                    className={`${item.color} h-4 rounded-full`} 
-                                    style={{ width: `${(item.value / maxValue) * 100}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    };
 
     return (
         <div>
@@ -68,7 +164,7 @@ const StatistikView = ({ stats, loading, error }) => {
     );
 };
 
-// Komponen untuk Halaman Konfirmasi Pembayaran (Dilihat oleh Staff & Kepala Bagian)
+// Komponen untuk Halaman Konfirmasi Pembayaran
 const KonfirmasiPembayaranView = ({ users, loading, error, onConfirm }) => {
     if (loading) return <div className="text-center p-8">Memuat data pendaftar...</div>;
     if (error) return <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>;
@@ -116,11 +212,8 @@ const KonfirmasiPembayaranView = ({ users, loading, error, onConfirm }) => {
     );
 };
 
-// Komponen untuk Manajemen Pendaftar (Hanya Dilihat oleh Kepala Bagian)
+// Komponen untuk Manajemen Pendaftar
 const ManajemenPendaftarView = ({ users, loading, error, onConfirm, onUserClick, setSearchInput, handleSearch }) => {
-    const StatusIcon = ({ isConfirmed }) => (
-        isConfirmed ? <span className="text-green-500">✔️ Lunas</span> : <span className="text-red-500">❌ Belum</span>
-    );
 
     if (loading) return <div className="text-center p-8">Memuat data pendaftar...</div>;
     if (error) return <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>;
@@ -206,7 +299,6 @@ const AdminPage = () => {
         setError(null);
         try {
             const token = localStorage.getItem('token');
-            // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
             const endpoint = role === 'kepala_bagian' || role === 'staff' 
                 ? 'http://localhost:8000/api/admin/users' 
                 : '';
@@ -247,7 +339,6 @@ const AdminPage = () => {
 
         if (loggedInUser?.role) {
             let defaultView = '';
-            // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
             if (loggedInUser.role === 'owner') defaultView = 'dashboard';
             else if (loggedInUser.role === 'staff') defaultView = 'konfirmasi-pembayaran';
             else if (loggedInUser.role === 'kepala_bagian') defaultView = 'dashboard';
@@ -258,10 +349,17 @@ const AdminPage = () => {
     useEffect(() => {
         if (!adminUser?.role) return;
 
+        setLoading(true);
+        setError(null);
+        setUsers([]);
+        setStats(null);
+
         if (activeView === 'dashboard') {
             fetchStats();
         } else if (activeView === 'manajemen-pendaftar' || activeView === 'konfirmasi-pembayaran') {
             fetchData(adminUser.role);
+        } else {
+            setLoading(false);
         }
     }, [activeView, adminUser, fetchData, fetchStats]);
 
@@ -270,7 +368,6 @@ const AdminPage = () => {
     };
 
     const handleUserClick = async (user) => {
-        // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
         if (adminUser?.role !== 'kepala_bagian') return;
 
         setIsModalOpen(true);
@@ -303,50 +400,26 @@ const AdminPage = () => {
         }
     };
 
-    const renderView = () => {
-        const role = adminUser?.role;
-        if (!role) return <div className="text-center p-8">Memuat data admin...</div>;
-
-        switch (activeView) {
-            case 'dashboard':
-                // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
-                if (role === 'owner' || role === 'kepala_bagian') {
-                    return <StatistikView stats={stats} loading={loading} error={error} />;
-                }
-                return <div className="text-center p-8 text-red-500">Anda tidak memiliki akses ke halaman ini.</div>;
-            
-            case 'konfirmasi-pembayaran':
-                // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
-                if (role === 'staff' || role === 'kepala_bagian') {
-                    return <KonfirmasiPembayaranView users={users} loading={loading} error={error} onConfirm={handleConfirm} />;
-                }
-                return <div className="text-center p-8 text-red-500">Anda tidak memiliki akses ke halaman ini.</div>;
-
-            case 'manajemen-pendaftar':
-                // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
-                if (role === 'kepala_bagian') {
-                    return <ManajemenPendaftarView users={users} loading={loading} error={error} onConfirm={handleConfirm} onUserClick={handleUserClick} setSearchInput={setSearchInput} handleSearch={handleSearch} />;
-                }
-                return <div className="text-center p-8 text-red-500">Anda tidak memiliki akses ke halaman ini.</div>;
-
-            case 'mahasiswa-aktif':
-                // --- [PERBAIKAN] --- Menyesuaikan peran 'kepala' menjadi 'kepala_bagian'
-                if (role === 'kepala_bagian') {
-                    return <MahasiswaAktifView />;
-                }
-                return <div className="text-center p-8 text-red-500">Anda tidak memiliki akses ke halaman ini.</div>;
-
-            default:
-                return <div className="text-center p-8">Selamat datang, {adminUser.name}. Silakan pilih menu.</div>;
-        }
-    };
-
     return (
         <div className="bg-gray-100 min-h-screen">
             <DashboardHeader user={adminUser} />
             <AdminNav activeView={activeView} setActiveView={setActiveView} role={adminUser?.role} />
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                {renderView()}
+                {activeView === 'dashboard' && (adminUser?.role === 'owner' || adminUser?.role === 'kepala_bagian') &&
+                    <StatistikView stats={stats} loading={loading} error={error} />
+                }
+                {activeView === 'konfirmasi-pembayaran' && (adminUser?.role === 'staff' || adminUser?.role === 'kepala_bagian') &&
+                    <KonfirmasiPembayaranView users={users} loading={loading} error={error} onConfirm={handleConfirm} />
+                }
+                {activeView === 'manajemen-pendaftar' && adminUser?.role === 'kepala_bagian' &&
+                    <ManajemenPendaftarView users={users} loading={loading} error={error} onConfirm={handleConfirm} onUserClick={handleUserClick} setSearchInput={setSearchInput} handleSearch={handleSearch} />
+                }
+                {activeView === 'mahasiswa-aktif' && adminUser?.role === 'kepala_bagian' &&
+                    <MahasiswaAktifView />
+                }
+                {activeView === 'tambah-staff' && adminUser?.role === 'kepala_bagian' &&
+                    <TambahStaffView />
+                }
             </div>
             
             {isModalOpen && (
