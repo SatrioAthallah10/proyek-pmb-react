@@ -1,7 +1,19 @@
 import React from 'react';
-import { FaTachometerAlt, FaUsers, FaUserGraduate, FaMoneyCheckAlt, FaUserPlus } from 'react-icons/fa';
+import { FaTachometerAlt, FaUsers, FaUserGraduate, FaMoneyCheckAlt, FaUserPlus, FaCog } from 'react-icons/fa';
 
-const AdminNav = ({ activeView, setActiveView, role }) => {
+// --- [PERUBAHAN TOTAL] Komponen sekarang menerima 'permissions' bukan 'role' ---
+const AdminNav = ({ activeView, setActiveView, permissions }) => {
+    
+    // Definisikan semua kemungkinan menu yang ada di sistem
+    const allMenus = [
+        { key: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt className="mr-2" /> },
+        { key: 'konfirmasi-pembayaran', label: 'Konfirmasi Pembayaran', icon: <FaMoneyCheckAlt className="mr-2" /> },
+        { key: 'manajemen-pendaftar', label: 'Manajemen Pendaftar', icon: <FaUsers className="mr-2" /> },
+        { key: 'mahasiswa-aktif', label: 'Mahasiswa Aktif', icon: <FaUserGraduate className="mr-2" /> },
+        { key: 'tambah-staff', label: 'Tambah Staff', icon: <FaUserPlus className="mr-2" /> },
+        { key: 'pengaturan-menu', label: 'Pengaturan Menu', icon: <FaCog className="mr-2" /> },
+    ];
+
     const NavButton = ({ viewName, icon, children }) => {
         const isActive = activeView === viewName;
         return (
@@ -19,44 +31,25 @@ const AdminNav = ({ activeView, setActiveView, role }) => {
         );
     };
 
+    // --- [PERUBAHAN TOTAL] Logika render tidak lagi menggunakan switch-case berdasarkan role,
+    // melainkan memfilter dari daftar menu berdasarkan objek permissions yang diterima.
     const renderNavButtons = () => {
-        switch (role) {
-            case 'owner':
-                return (
-                    <NavButton viewName="dashboard" icon={<FaTachometerAlt className="mr-2" />}>
-                        Dashboard
-                    </NavButton>
-                );
-            case 'staff':
-                return (
-                    <NavButton viewName="konfirmasi-pembayaran" icon={<FaMoneyCheckAlt className="mr-2" />}>
-                        Konfirmasi Pembayaran
-                    </NavButton>
-                );
-            case 'kepala_bagian':
-                return (
-                    <>
-                        <NavButton viewName="dashboard" icon={<FaTachometerAlt className="mr-2" />}>
-                            Dashboard
-                        </NavButton>
-                        <NavButton viewName="konfirmasi-pembayaran" icon={<FaMoneyCheckAlt className="mr-2" />}>
-                            Konfirmasi Pembayaran
-                        </NavButton>
-                        <NavButton viewName="manajemen-pendaftar" icon={<FaUsers className="mr-2" />}>
-                            Manajemen Pendaftar
-                        </NavButton>
-                        <NavButton viewName="mahasiswa-aktif" icon={<FaUserGraduate className="mr-2" />}>
-                            Mahasiswa Aktif
-                        </NavButton>
-                        {/* --- [PENAMBAHAN] Tombol baru untuk tambah staff --- */}
-                        <NavButton viewName="tambah-staff" icon={<FaUserPlus className="mr-2" />}>
-                            Tambah Staff
-                        </NavButton>
-                    </>
-                );
-            default:
-                return <p className="text-gray-400">Memuat menu...</p>;
+        if (!permissions) {
+            return <p className="text-gray-400">Memuat menu...</p>;
         }
+
+        // Filter `allMenus` untuk hanya menyertakan menu yang `key`-nya ada di `permissions`
+        const allowedMenus = allMenus.filter(menu => permissions[menu.key]);
+
+        if (allowedMenus.length === 0) {
+            return <p className="text-gray-400">Tidak ada menu yang bisa diakses.</p>;
+        }
+
+        return allowedMenus.map(menu => (
+            <NavButton key={menu.key} viewName={menu.key} icon={menu.icon}>
+                {menu.label}
+            </NavButton>
+        ));
     };
 
     return (
