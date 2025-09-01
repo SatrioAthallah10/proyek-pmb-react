@@ -6,8 +6,15 @@ import {
     FaMoneyCheckAlt 
 } from 'react-icons/fa';
 
+// --- [PERBAIKAN 1: IMPOR KOMPONEN YANG BENAR] ---
+// Memastikan semua komponen eksternal yang benar diimpor.
+import DashboardHeader from '../components/dashboard/DashboardHeader';
+import MahasiswaAktifView from '../components/dashboard/MahasiswaAktifView';
+import ProgressModal from '../components/dashboard/ProgressModal'; // <- Ini adalah modal yang fungsional
+
+
 // ===================================================================================
-// KOMPONEN: AdminNav (Sekarang menjadi bagian dari file ini)
+// KOMPONEN-KOMPONEN LOKAL (SEMUA DARI FILE ASLI ANDA DIPERTAHANKAN)
 // ===================================================================================
 const AdminNav = ({ activeView, setActiveView, permissions }) => {
     const allMenus = [
@@ -60,10 +67,6 @@ const AdminNav = ({ activeView, setActiveView, permissions }) => {
     );
 };
 
-
-// ===================================================================================
-// KOMPONEN: PengaturanMenu (Sekarang menjadi bagian dari file ini)
-// ===================================================================================
 const PengaturanMenu = () => {
     const [permissions, setPermissions] = useState({});
     const [loading, setLoading] = useState(true);
@@ -178,46 +181,11 @@ const PengaturanMenu = () => {
 };
 
 
-// ===================================================================================
-// KOMPONEN-KOMPONEN LAINNYA (Views, Headers, Modals, dll.)
-// ===================================================================================
-const DashboardHeader = ({ user, onLogout }) => (
-    <header className="bg-white shadow-md p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
-        <div>
-            <span className="text-gray-600">Selamat datang, {user?.name || 'Admin'}!</span>
-        </div>
-    </header>
-);
+// --- [PERBAIKAN 2: HAPUS KOMPONEN LOKAL YANG SALAH] ---
+// Definisi ProgressModal yang sederhana dan salah di bawah ini telah dihapus.
+// const ProgressModal = ({ user, onClose, isLoading }) => { ... };
+// Kita akan menggunakan versi yang diimpor di atas.
 
-const ProgressModal = ({ user, onClose, isLoading }) => {
-    if (!user && !isLoading) return null;
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-                {isLoading ? (
-                    <p>Memuat detail pengguna...</p>
-                ) : (
-                    <>
-                        <h2 className="text-2xl font-bold mb-4">{user.name}</h2>
-                        <p><strong>Email:</strong> {user.email}</p>
-                        <p><strong>Status Pendaftaran Awal:</strong> {user.pendaftaran_awal ? 'Selesai' : 'Belum'}</p>
-                        <p><strong>Status Pembayaran:</strong> {user.pembayaran ? 'Lunas' : 'Belum'}</p>
-                        <p><strong>Status Daftar Ulang:</strong> {user.daftar_ulang ? 'Selesai' : 'Belum'}</p>
-                        <button onClick={onClose} className="mt-6 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Tutup</button>
-                    </>
-                )}
-            </div>
-        </div>
-    );
-};
-
-const MahasiswaAktifView = () => (
-    <div className="bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold">Halaman Mahasiswa Aktif</h1>
-        <p>Fitur ini sedang dalam pengembangan.</p>
-    </div>
-);
 
 const InputField = ({ name, type, placeholder, icon, value, onChange, error }) => (
     <div className="mb-4">
@@ -526,6 +494,9 @@ const AdminPage = () => {
                 )}
                  {error && <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>}
             </div>
+            
+            {/* --- [PERBAIKAN 3: GUNAKAN KOMPONEN YANG BENAR] --- */}
+            {/* Pemanggilan ini sekarang akan merujuk ke ProgressModal yang diimpor dari file eksternal */}
             {isModalOpen && <ProgressModal user={selectedUser} onClose={() => setIsModalOpen(false)} isLoading={isModalLoading} />}
         </div>
     );

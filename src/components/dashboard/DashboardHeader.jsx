@@ -2,13 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// --- [PERBAIKAN] Menggunakan SVG untuk ikon logout untuk menghindari error ---
+// Menggunakan SVG untuk ikon logout untuk stabilitas
 const IconSignOut = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
     </svg>
 );
-
 
 const DashboardHeader = ({ user }) => { 
     const navigate = useNavigate();
@@ -28,7 +27,9 @@ const DashboardHeader = ({ user }) => {
         }
     };
 
+    // Menggunakan data user dinamis, dengan fallback jika data belum ada
     const displayName = user?.name || 'Nama Admin';
+    const displayRole = user?.role ? `(${user.role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())})` : '';
     const displayEmail = user?.email || 'email@admin.com';
 
     return (
@@ -44,7 +45,7 @@ const DashboardHeader = ({ user }) => {
             {/* Informasi user dan tombol logout di sebelah kanan */}
             <div className="flex items-center">
                 <div className="text-right mr-4">
-                    <p className="font-semibold text-gray-800">{displayName}</p>
+                    <p className="font-semibold text-gray-800">{displayName} {displayRole}</p>
                     <p className="text-sm text-gray-500">{displayEmail}</p>
                 </div>
                 <img 
@@ -58,7 +59,7 @@ const DashboardHeader = ({ user }) => {
                     title="Logout"
                 >
                     <IconSignOut />
-                    <span className="ml-2">Logout</span>
+                    <span className="ml-2 font-medium">Logout</span>
                 </button>
             </div>
         </header>
