@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaLock, FaEnvelope } from 'react-icons/fa';
+// Perbaikan: Mengubah path impor untuk react-icons agar sesuai dengan versi terbaru library.
+import { FaLock, FaEnvelope } from 'react-icons/fa6';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -27,23 +28,23 @@ const LoginPage = () => {
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(user));
 
-        // --- [PERBAIKAN FINAL] ---
-        // Menyesuaikan 'kepala' menjadi 'kepala_bagian' agar cocok dengan data dari server.
         const adminRoles = ['admin', 'kepala_bagian', 'staff', 'owner'];
         
         if (user.role && adminRoles.includes(user.role)) {
           navigate('/admin');
         } else {
+          // Logika pengalihan yang diperbaiki
           switch (user.jalur_pendaftaran) {
-            case 'RPL':
+            case 'Sarjana RPL': // Mencocokkan dengan nilai dari backend
               navigate('/dashboard-rpl');
               break;
-            case 'Magister':
+            case 'Magister Reguler':
               navigate('/dashboard-magister');
               break;
             case 'Magister RPL':
-              navigate('/dashboard-magister');
+              navigate('/dashboard-magister'); // Asumsi sama dengan magister reguler
               break;
+            case 'Sarjana Reguler':
             default:
               navigate('/dashboard');
               break;
@@ -129,3 +130,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

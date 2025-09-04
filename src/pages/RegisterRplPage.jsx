@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa';
+// Perbaikan: Mengubah path impor untuk react-icons agar sesuai dengan versi terbaru library.
+import { FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa6';
+import { Link, useNavigate } from 'react-router-dom'; // 1. Impor useNavigate
 
-// Komponen-komponen form yang bisa digunakan kembali
+// Komponen-komponen form yang bisa digunakan kembali (tidak ada perubahan)
 const FormInputWithIcon = ({ icon, label, name, type, value, onChange, placeholder }) => (
     <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2">{label}</label>
@@ -52,14 +54,16 @@ const FormTextarea = ({ label, name, value, onChange, placeholder }) => (
 );
 
 
-const RegisterRplPage = ({ setCurrentPage }) => {
+const RegisterRplPage = () => { // Hapus prop setCurrentPage
+    // 2. Gunakan hook useNavigate
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         nama: '',
         email: '',
         alamat: '',
         jenisKelamin: '',
         nomorTelepon: '',
-        jalur: 'rpl', // Nilai ini akan dikirim ke backend
         sumberPendaftaran: '',
         password: '',
         konfirmPassword: '',
@@ -108,13 +112,13 @@ const RegisterRplPage = ({ setCurrentPage }) => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/register', {
+            // 3. Mengarahkan ke endpoint yang benar untuk RPL
+            const response = await fetch('http://127.0.0.1:8000/api/register-rpl', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                // PERBAIKAN: Mengirim seluruh objek formData, termasuk 'jalur: "rpl"'
                 body: JSON.stringify(formData),
             });
 
@@ -127,12 +131,12 @@ const RegisterRplPage = ({ setCurrentPage }) => {
                 throw new Error(data.message || 'Registrasi gagal.');
             }
 
-            setSuccessMessage('Registrasi RPL berhasil! Silakan login.');
-            setFormData({
-                nama: '', email: '', alamat: '', jenisKelamin: '', nomorTelepon: '',
-                jalur: 'rpl',
-                sumberPendaftaran: '', password: '', konfirmPassword: '', agreePolicy: false,
-            });
+            setSuccessMessage('Registrasi RPL berhasil! Anda akan diarahkan ke halaman login.');
+            
+            // 4. Arahkan ke halaman login setelah 2 detik
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
 
         } catch (err) {
             setError(err.message);
@@ -143,7 +147,7 @@ const RegisterRplPage = ({ setCurrentPage }) => {
 
     return (
         <div className="flex min-h-screen bg-gray-100">
-             <div className="hidden md:block md:w-1/2 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop')" }}>
+             <div className="hidden md:block md:w-1/2 bg-cover bg-center" style={{ backgroundImage: "url('/images/gambar-hero-section.jpeg')" }}>
                 <div className="flex flex-col justify-end h-full p-12 bg-black bg-opacity-50 text-white">
                     <h2 className="text-4xl font-bold">Bergabunglah Bersama Kami</h2>
                     <p className="text-lg mt-2">Buat akun Anda untuk memulai perjalanan pendidikan di ITATS.</p>
@@ -164,7 +168,7 @@ const RegisterRplPage = ({ setCurrentPage }) => {
                             <label className="block text-gray-700 text-sm font-bold mb-2">Scan KTP untuk mempermudah pendaftaran</label>
                             <div className="flex items-center gap-4">
                                 <label htmlFor="ktp-file" className="cursor-pointer bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">
-                                    Choose File
+                                    Pilih File
                                 </label>
                                 <input id="ktp-file" type="file" className="hidden" onChange={handleFileChange} />
                                 <span className="text-gray-500 text-sm italic">{ktpFileName}</span>
@@ -199,7 +203,7 @@ const RegisterRplPage = ({ setCurrentPage }) => {
                                 <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleInputChange} placeholder="Password" required className="w-full pl-10 pr-3 py-2 border-b-2 border-gray-300 focus:outline-none focus:border-blue-500" />
                             </div>
                             <div className="flex items-center justify-end mt-2">
-                                <span className="text-sm mr-2">Show Password</span>
+                                <span className="text-sm mr-2">Tampilkan Password</span>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" checked={showPassword} onChange={() => setShowPassword(!showPassword)} className="sr-only peer" />
                                     <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -208,15 +212,15 @@ const RegisterRplPage = ({ setCurrentPage }) => {
                         </div>
 
                          <div className="mb-6">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">Konfirm Password</label>
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Konfirmasi Password</label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <FaLock className="text-gray-400" />
                                 </div>
-                                <input type={showKonfirmPassword ? 'text' : 'password'} name="konfirmPassword" value={formData.konfirmPassword} onChange={handleInputChange} placeholder="Confirm Password" required className="w-full pl-10 pr-3 py-2 border-b-2 border-gray-300 focus:outline-none focus:border-blue-500" />
+                                <input type={showKonfirmPassword ? 'text' : 'password'} name="konfirmPassword" value={formData.konfirmPassword} onChange={handleInputChange} placeholder="Konfirmasi Password" required className="w-full pl-10 pr-3 py-2 border-b-2 border-gray-300 focus:outline-none focus:border-blue-500" />
                             </div>
                             <div className="flex items-center justify-end mt-2">
-                                <span className="text-sm mr-2">Show Password</span>
+                                <span className="text-sm mr-2">Tampilkan Password</span>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" checked={showKonfirmPassword} onChange={() => setShowKonfirmPassword(!showKonfirmPassword)} className="sr-only peer" />
                                     <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -227,7 +231,7 @@ const RegisterRplPage = ({ setCurrentPage }) => {
                         <div className="mb-4">
                             <label className="flex items-center">
                                 <input type="checkbox" name="agreePolicy" checked={formData.agreePolicy} onChange={handleInputChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
-                                <span className="ml-2 text-sm text-gray-600">I agree the policy. <a href="#" className="text-blue-600 hover:underline">baca disini</a></span>
+                                <span className="ml-2 text-sm text-gray-600">Saya menyetujui kebijakan. <a href="#" className="text-blue-600 hover:underline">baca disini</a></span>
                             </label>
                         </div>
                         
@@ -238,14 +242,14 @@ const RegisterRplPage = ({ setCurrentPage }) => {
                         </div>
 
                         <div className="flex justify-between items-center">
-                            <a href="#" onClick={() => setCurrentPage('login')} className="text-sm text-blue-600 hover:underline">Sudah Punya Akun? Login disini</a>
+                             <Link to="/login" className="text-sm text-blue-600 hover:underline">Sudah Punya Akun? Login disini</Link>
                             <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled={isLoading}>
                                 {isLoading ? 'Mendaftar...' : 'Daftar'}
                             </button>
                         </div>
                     </form>
                     <div className="text-center mt-6">
-                        <a href="#" onClick={() => setCurrentPage('home')} className="text-sm text-blue-600 hover:underline">Back To Home</a>
+                        <Link to="/" className="text-sm text-blue-600 hover:underline">Kembali ke Beranda</Link>
                         <p className="text-xs text-gray-400 mt-4">Copyright © 2021 PSI Institut Teknologi Adhi Tama Surabaya 2023</p>
                     </div>
                 </div>
@@ -255,3 +259,4 @@ const RegisterRplPage = ({ setCurrentPage }) => {
 };
 
 export default RegisterRplPage;
+

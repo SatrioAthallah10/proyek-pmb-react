@@ -1,96 +1,94 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import DashboardHeader from '../components/dashboard/DashboardHeader.jsx';
-import DashboardNav from '../components/dashboard/DashboardNav.jsx';
-import RegistrationSidebar from '../components/dashboard/RegistrationSidebar.jsx';
-import { DataDiriView, TesSeleksiView, SoalTesView, HasilTesView, KtmView } from '../components/dashboard/Views.jsx';
-import PendaftaranAwalView from '../components/dashboard/PendaftaranAwalView.jsx';
-import KonfirmasiPembayaranView from '../components/dashboard/KonfirmasiPembayaranView.jsx';
-import DaftarUlangView from '../components/dashboard/DaftarUlangView.jsx';
-import KonfirmasiDaftarUlangView from '../components/dashboard/KonfirmasiDaftarUlangView.jsx';
-import NPMView from '../components/dashboard/NPMView.jsx';
+import axios from 'axios';
+// Perbaikan: Menghapus ekstensi .jsx dari path impor agar sesuai dengan praktik umum Vite/React
+import DashboardHeader from '../components/dashboard/DashboardHeader';
+import DashboardNav from '../components/dashboard/DashboardNav';
+import RegistrationSidebar from '../components/dashboard/RegistrationSidebar';
+import { DataDiriView, TesSeleksiView, SoalTesView, HasilTesView, KtmView } from '../components/dashboard/Views';
+import PendaftaranAwalView from '../components/dashboard/PendaftaranAwalView';
+import KonfirmasiPembayaranView from '../components/dashboard/KonfirmasiPembayaranView';
+import DaftarUlangView from '../components/dashboard/DaftarUlangView';
+import KonfirmasiDaftarUlangView from '../components/dashboard/KonfirmasiDaftarUlangView';
+import NPMView from '../components/dashboard/NPMView';
 
-const DashboardRplPage = ({ setIsLoggedIn, setCurrentPage }) => {
+// Mengubah nama komponen menjadi DashboardRplPage
+const DashboardRplPage = () => {
     const [activeView, setActiveView] = useState('data-diri');
-    const [userData, setUserData] = useState(null);
+    const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const fetchUserData = useCallback(async () => {
+    // Fungsi ini sama persis dengan DashboardPage, karena endpointnya sama
+    const fetchStatus = useCallback(async () => {
         setLoading(true);
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token');
         if (!token) {
+            setError("Sesi tidak valid. Silakan login kembali.");
             setLoading(false);
             return;
         }
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/rpl/user', {
+            const response = await axios.get('http://localhost:8000/api/registration-status', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
-                    'Cache-Control': 'no-cache',
                 },
             });
-            if (!response.ok) throw new Error('Gagal mengambil data pengguna RPL');
-            const data = await response.json();
-            setUserData(data);
-        } catch (error) {
-            console.error("Error fetching user data:", error);
+            setDashboardData(response.data);
+        } catch (err) {
+            console.error("Error fetching registration status:", err);
+            setError("Gagal memuat data dasbor. Silakan coba lagi.");
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchUserData();
-    }, [fetchUserData]);
+        fetchStatus();
+    }, [fetchStatus]);
 
-    if (loading || !userData) {
-        return <div className="flex justify-center items-center min-h-screen bg-gray-100"><p>Memuat data dasbor RPL...</p></div>;
+    if (loading) {
+        return <div className="flex justify-center items-center min-h-screen bg-gray-100"><p>Memuat data dasbor...</p></div>;
+    }
+    
+    if (error || !dashboardData) {
+        return <div className="flex justify-center items-center min-h-screen bg-gray-100 text-red-600"><p>{error || "Data tidak dapat dimuat."}</p></div>;
     }
 
-    // --- PERBAIKAN LOGIKA DI SINI ---
-    const isNpmCompleted = !!userData.npm_status && userData.npm_status !== 'Belum Diproses';
+    const user = dashboardData.user;
+    const timelineData = dashboardData.timeline;
 
-    const timelineData = [
-        { title: 'Formulir Pendaftaran', status: userData.formulir_pendaftaran_status, completed: userData.formulir_pendaftaran_completed },
-        { title: 'Pembayaran Form Daftar', status: userData.pembayaran_form_status, completed: userData.pembayaran_form_completed },
-        { title: 'Status Administrasi', status: userData.administrasi_status, completed: userData.administrasi_completed },
-        { title: 'Tes Seleksi PMB ITATS', status: userData.tes_seleksi_status, completed: userData.tes_seleksi_completed },
-        { title: 'Pembayaran Daftar Ulang', status: userData.pembayaran_daful_status, completed: userData.pembayaran_daful_completed },
-        { title: 'Pengisian Data Diri', status: userData.pengisian_data_diri_status, completed: userData.pengisian_data_diri_completed },
-        { title: 'Penerbitan NPM', status: userData.npm_status, completed: isNpmCompleted }, // Menggunakan variabel baru
-    ];
-    
-    const isFormulirCompleted = userData.formulir_pendaftaran_completed;
-    const isPembayaranFormCompleted = userData.pembayaran_form_completed;
-    const isTesLulus = userData.tes_seleksi_completed;
-    const isPembayaranDafulCompleted = userData.pembayaran_daful_completed;
+    const isTesLulus = user?.tes_seleksi_completed;
+    const isPembayaranDafulCompleted = user?.pembayaran_daful_completed;
 
     const renderView = () => {
-        const props = {
-            userData,
-            refetchUserData: fetchUserData,
-            setActiveView,
-            isRpl: true
+        // Menambahkan prop isRpl=true ke komponen yang memerlukannya
+        const commonProps = {
+            user: user,
+            refetchUserData: fetchStatus,
+            setActiveView: setActiveView
         };
+
+        const rplProps = { ...commonProps, isRpl: true };
 
         switch (activeView) {
             case 'konfirmasi-pembayaran':
-                return <KonfirmasiPembayaranView {...props} />;
+                return <KonfirmasiPembayaranView {...rplProps} />;
             case 'pendaftaran-awal':
-                return <PendaftaranAwalView {...props} />;
+                return <PendaftaranAwalView {...rplProps} />;
             case 'konfirmasi-daftar-ulang':
-                 if (isTesLulus) { return <KonfirmasiDaftarUlangView {...props} />; }
+                 if (isTesLulus) { return <KonfirmasiDaftarUlangView {...rplProps} />; }
                  else { return <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus dinyatakan lulus Tes Seleksi terlebih dahulu.</p></div>; }
             case 'tes-seleksi':
-                return <TesSeleksiView {...props} />;
+                return <TesSeleksiView {...rplProps} />;
             case 'soal-tes':
-                return <SoalTesView {...props} />;
+                return <SoalTesView {...rplProps} />;
             case 'hasil-tes':
-                return <HasilTesView {...props} />;
+                return <HasilTesView {...commonProps} />;
             case 'ktm':
                 return <KtmView />;
             case 'daftar-ulang':
-                if (isPembayaranDafulCompleted) { return <DaftarUlangView {...props} />; }
+                if (isPembayaranDafulCompleted) { return <DaftarUlangView {...rplProps} />; }
                 else { return <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus menyelesaikan proses Pembayaran Daftar Ulang terlebih dahulu.</p></div>; }
             case 'npm':
                 return <NPMView />;
@@ -102,12 +100,12 @@ const DashboardRplPage = ({ setIsLoggedIn, setCurrentPage }) => {
 
     return (
         <div className="bg-gray-100 min-h-screen">
-            <DashboardHeader setIsLoggedIn={setIsLoggedIn} setCurrentPage={setCurrentPage} />
+            <DashboardHeader user={user} />
             <DashboardNav 
                 activeView={activeView} 
                 setActiveView={setActiveView} 
-                isFormulirCompleted={isFormulirCompleted}
-                isPembayaranFormCompleted={isPembayaranFormCompleted}
+                isFormulirCompleted={user?.formulir_pendaftaran_completed}
+                isPembayaranFormCompleted={user?.pembayaran_form_completed}
                 isPembayaranDafulCompleted={isPembayaranDafulCompleted}
                 isTesLulus={isTesLulus}
             />
@@ -124,3 +122,4 @@ const DashboardRplPage = ({ setIsLoggedIn, setCurrentPage }) => {
 };
 
 export default DashboardRplPage;
+

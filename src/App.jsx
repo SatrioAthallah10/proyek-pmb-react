@@ -1,20 +1,17 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import RegisterRplPage from './pages/RegisterRplPage';
-import RegisterMagisterPage from './pages/RegisterMagisterPage';
-import RegisterMagisterRplPage from './pages/RegisterMagisterRplPage';
-import DashboardPage from './pages/DashboardPage';
-import DashboardRplPage from './pages/DashboardRplPage';
-import DashboardMagisterPage from './pages/DashboardMagisterPage';
-
-// --- Komponen yang kita tambahkan ---
-import AdminPage from './pages/AdminPage';
-import ProtectedRoute from './utils/ProtectedRoute'; 
-
-// Layout publik untuk halaman yang tidak memerlukan login
-import PublicLayout from './components/PublicLayout';
+// Perbaikan: Menambahkan ekstensi .jsx pada semua impor lokal untuk memastikan path-nya dapat ditemukan oleh bundler.
+import HomePage from './pages/HomePage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
+import RegisterRplPage from './pages/RegisterRplPage.jsx';
+import RegisterMagisterPage from './pages/RegisterMagisterPage.jsx';
+import RegisterMagisterRplPage from './pages/RegisterMagisterRplPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
+import DashboardRplPage from './pages/DashboardRplPage.jsx';
+import DashboardMagisterPage from './pages/DashboardMagisterPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
+import ProtectedRoute from './utils/ProtectedRoute.jsx'; 
+import PublicLayout from './components/PublicLayout.jsx';
 
 function App() {
   return (
@@ -39,13 +36,15 @@ function App() {
         {/* Grup Rute Terproteksi untuk User Biasa */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          {/* Tambahkan rute baru untuk dasbor RPL di sini */}
           <Route path="/dashboard-rpl" element={<DashboardRplPage />} />
           <Route path="/dashboard-magister" element={<DashboardMagisterPage />} />
           {/* Tambahkan rute dashboard lainnya di sini jika ada */}
         </Route>
         
-        {/* Grup Rute Terproteksi khusus untuk Kepala Bagian */}
-        <Route element={<ProtectedRoute isKepalaBagianRoute={true} />}> {/* <-- [PERUBAHAN] */}
+        {/* Grup Rute Terproteksi khusus untuk Admin */}
+        {/* Mengubah prop menjadi isAdminRoute untuk kejelasan */}
+        <Route element={<ProtectedRoute isAdminRoute={true} />}>
           <Route path="/admin" element={<AdminPage />} />
         </Route>
 
@@ -55,3 +54,4 @@ function App() {
 }
 
 export default App;
+
