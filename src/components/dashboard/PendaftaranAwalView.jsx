@@ -92,7 +92,7 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
         setError('');
         const token = localStorage.getItem('token');
 
-        // --- [PERBAIKAN DI SINI] ---
+        // --- [PENYESUAIAN] ---
         const dataToSend = {
             nama_lengkap: formData.namaLengkap,
             no_ktp: formData.noKtp,
@@ -108,12 +108,11 @@ const PendaftaranAwalView = ({ setActiveView, refetchUserData, isRpl = false }) 
             kota_sekolah: formData.kotaSekolah,
             nilai_rata_rata: formData.nilaiRataRata,
             prodi_pilihan: formData.prodi,
-            // Menambahkan 'kelas' yang hilang
             kelas: formData.jadwalKuliah, 
             jadwal_kuliah: formData.jadwalKuliah,
             tahun_ajaran: formData.tahunAjaran,
         };
-        // --- [AKHIR PERBAIKAN] ---
+        // --- [AKHIR PENYESUAIAN] ---
 
         const apiUrl = isRpl 
             ? 'http://127.0.0.1:8000/api/rpl/submit-pendaftaran-awal' 

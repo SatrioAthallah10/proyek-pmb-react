@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-// Perbaikan: Menghapus ekstensi .jsx dari path impor agar sesuai dengan praktik umum Vite/React
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DashboardNav from '../components/dashboard/DashboardNav';
 import RegistrationSidebar from '../components/dashboard/RegistrationSidebar';
@@ -11,16 +10,15 @@ import DaftarUlangView from '../components/dashboard/DaftarUlangView';
 import KonfirmasiDaftarUlangView from '../components/dashboard/KonfirmasiDaftarUlangView';
 import NPMView from '../components/dashboard/NPMView';
 
-// Mengubah nama komponen menjadi DashboardRplPage
 const DashboardRplPage = () => {
-    const [activeView, setActiveView] = useState('data-diri');
+    // State activeView sekarang akan ditentukan setelah data dimuat
+    const [activeView, setActiveView] = useState(null); 
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fungsi ini sama persis dengan DashboardPage, karena endpointnya sama
     const fetchStatus = useCallback(async () => {
-        setLoading(true);
+        // Jangan set loading di sini untuk menghindari re-render yang tidak perlu
         const token = localStorage.getItem('token');
         if (!token) {
             setError("Sesi tidak valid. Silakan login kembali.");
@@ -35,6 +33,16 @@ const DashboardRplPage = () => {
                 },
             });
             setDashboardData(response.data);
+
+            // --- [LOGIKA PERBAIKAN UTAMA] ---
+            // Tentukan activeView pertama kali di sini setelah data berhasil didapat
+            const status = response.data.user.status_pendaftaran;
+            if (status === 'mengisi_formulir_awal') {
+                setActiveView('pendaftaran-awal');
+            } else {
+                setActiveView('data-diri'); // Atau tampilan default lainnya
+            }
+
         } catch (err) {
             console.error("Error fetching registration status:", err);
             setError("Gagal memuat data dasbor. Silakan coba lagi.");
@@ -47,6 +55,7 @@ const DashboardRplPage = () => {
         fetchStatus();
     }, [fetchStatus]);
 
+    // Kondisi loading sekarang lebih sederhana
     if (loading) {
         return <div className="flex justify-center items-center min-h-screen bg-gray-100"><p>Memuat data dasbor...</p></div>;
     }
@@ -62,39 +71,28 @@ const DashboardRplPage = () => {
     const isPembayaranDafulCompleted = user?.pembayaran_daful_completed;
 
     const renderView = () => {
-        // Menambahkan prop isRpl=true ke komponen yang memerlukannya
-        const commonProps = {
-            user: user,
-            refetchUserData: fetchStatus,
-            setActiveView: setActiveView
-        };
-
+        const commonProps = { user, refetchUserData: fetchStatus, setActiveView };
         const rplProps = { ...commonProps, isRpl: true };
 
+        // Jika activeView belum ditentukan (misal saat render pertama), jangan render apa-apa
+        if (!activeView) return null;
+
         switch (activeView) {
-            case 'konfirmasi-pembayaran':
-                return <KonfirmasiPembayaranView {...rplProps} />;
-            case 'pendaftaran-awal':
-                return <PendaftaranAwalView {...rplProps} />;
+            case 'konfirmasi-pembayaran': return <KonfirmasiPembayaranView {...rplProps} />;
+            case 'pendaftaran-awal': return <PendaftaranAwalView {...rplProps} />;
             case 'konfirmasi-daftar-ulang':
                  if (isTesLulus) { return <KonfirmasiDaftarUlangView {...rplProps} />; }
                  else { return <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus dinyatakan lulus Tes Seleksi terlebih dahulu.</p></div>; }
-            case 'tes-seleksi':
-                return <TesSeleksiView {...rplProps} />;
-            case 'soal-tes':
-                return <SoalTesView {...rplProps} />;
-            case 'hasil-tes':
-                return <HasilTesView {...commonProps} />;
-            case 'ktm':
-                return <KtmView />;
+            case 'tes-seleksi': return <TesSeleksiView {...rplProps} />;
+            case 'soal-tes': return <SoalTesView {...rplProps} />;
+            case 'hasil-tes': return <HasilTesView {...commonProps} />;
+            case 'ktm': return <KtmView />;
             case 'daftar-ulang':
                 if (isPembayaranDafulCompleted) { return <DaftarUlangView {...rplProps} />; }
                 else { return <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus menyelesaikan proses Pembayaran Daftar Ulang terlebih dahulu.</p></div>; }
-            case 'npm':
-                return <NPMView />;
+            case 'npm': return <NPMView />;
             case 'data-diri':
-            default:
-                return <DataDiriView />;
+            default: return <DataDiriView />;
         }
     };
 
@@ -122,4 +120,3 @@ const DashboardRplPage = () => {
 };
 
 export default DashboardRplPage;
-

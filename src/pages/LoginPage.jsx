@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// Perbaikan: Mengubah path impor untuk react-icons agar sesuai dengan versi terbaru library.
 import { FaLock, FaEnvelope } from 'react-icons/fa6';
 
 const LoginPage = () => {
@@ -33,16 +32,16 @@ const LoginPage = () => {
         if (user.role && adminRoles.includes(user.role)) {
           navigate('/admin');
         } else {
-          // Logika pengalihan yang diperbaiki
+          // --- [PERBAIKAN LOGIKA PENGALIHAN DI SINI] ---
           switch (user.jalur_pendaftaran) {
-            case 'Sarjana RPL': // Mencocokkan dengan nilai dari backend
+            case 'Sarjana RPL': // Dikembalikan ke nilai yang benar sesuai backend
               navigate('/dashboard-rpl');
               break;
-            case 'Magister Reguler':
+            case 'magister-reguler':
               navigate('/dashboard-magister');
               break;
-            case 'Magister RPL':
-              navigate('/dashboard-magister'); // Asumsi sama dengan magister reguler
+            case 'magister-rpl':
+              navigate('/dashboard-magister');
               break;
             case 'Sarjana Reguler':
             default:
@@ -130,4 +129,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
