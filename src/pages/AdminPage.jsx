@@ -362,7 +362,7 @@ const ManajemenPendaftarView = ({ users, loading, error, onConfirm, onUserClick,
                                     <div className="flex gap-2">
                                         {!user.pendaftaran_awal && <button onClick={() => onConfirm(user.id, 'confirm-initial-registration')} className="text-indigo-600 hover:text-indigo-900">Konfirmasi Awal</button>}
                                         {user.pendaftaran_awal && user.bukti_pembayaran_path && !user.pembayaran && <button onClick={() => onConfirm(user.id, 'confirm-payment')} className="text-green-600 hover:text-green-900">Konfirmasi Bayar</button>}
-                                        {user.pembayaran && !user.daftar_ulang && <button onClick={() => onConfirm(user.id, 'confirm-reregistration')} className="text-blue-600 hover:text-blue-900">Konfirmasi Daful</button>}
+                                        {user.pembayaran && !user.daftar_ulang && <button onClick={() => onConfirm(user.id, 'konfirmasi-daftar-ulang')} className="text-blue-600 hover:text-blue-900">Konfirmasi Daful</button>}
                                     </div>
                                 </td>
                             </tr>
@@ -466,16 +466,35 @@ const AdminPage = () => {
     };
 
     const handleConfirm = async (userId, confirmationType) => {
-        if (!window.confirm('Apakah Anda yakin ingin mengonfirmasi?')) return;
-        try {
-            const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:8000/api/admin/users/${userId}/${confirmationType}`, {}, { headers: { Authorization: `Bearer ${token}` } });
-            alert('Konfirmasi berhasil!');
-            fetchData(adminUser.role);
-        } catch (err) {
-            alert('Konfirmasi gagal.');
+    if (!window.confirm('Apakah Anda yakin ingin mengonfirmasi?')) return;
+    try {
+        const token = localStorage.getItem('token');
+        await axios.put(`http://localhost:8000/api/admin/users/${userId}/${confirmationType}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+        alert('Konfirmasi berhasil!');
+        fetchData(adminUser.role);
+    } catch (err) {
+        // --- FUNGSI DEBUG ---
+        // Menampilkan pesan error yang lebih detail ke konsol
+        console.error("--- DEBUG: Terjadi Error Saat Konfirmasi ---");
+        if (err.response) {
+            // Server merespons dengan status error (4xx atau 5xx)
+            console.error("Data Respons:", err.response.data);
+            console.error("Status Kode:", err.response.status);
+            console.error("Headers:", err.response.headers);
+            alert(`Konfirmasi gagal: ${err.response.data.message || 'Error dari server.'}`);
+        } else if (err.request) {
+            // Permintaan dibuat tapi tidak ada respons
+            console.error("Request Data:", err.request);
+            alert('Konfirmasi gagal: Tidak ada respons dari server. Periksa koneksi atau status server.');
+        } else {
+            // Error lain saat menyiapkan permintaan
+            console.error('Error Message:', err.message);
+            alert(`Konfirmasi gagal: Terjadi kesalahan. ${err.message}`);
         }
-    };
+        console.error("--- AKHIR DEBUG ---");
+        // --- AKHIR FUNGSI DEBUG ---
+    }
+};
 
     return (
         <div className="bg-gray-100 min-h-screen">

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FaUser, FaEnvelope, FaLock, FaPhone } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaHashtag } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 
-// Komponen-komponen form ini bisa diekstraksi ke file terpisah jika diperlukan
-const FormInputWithIcon = ({ icon, label, name, type, value, onChange, placeholder }) => (
+// Komponen-komponen pembantu (tidak ada perubahan)
+const FormInputWithIcon = ({ icon, label, name, type, value, onChange, placeholder, required = true }) => (
     <div className="mb-4">
         <label className="block text-gray-700 text-sm font-bold mb-2">{label}</label>
         <div className="relative">
@@ -15,7 +16,7 @@ const FormInputWithIcon = ({ icon, label, name, type, value, onChange, placehold
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                required
+                required={required}
                 className="w-full pl-10 pr-3 py-2 border-b-2 border-gray-300 focus:outline-none focus:border-blue-500 transition-colors"
             />
         </div>
@@ -29,7 +30,6 @@ const FormSelect = ({ label, name, value, onChange, children }) => (
             name={name}
             value={value}
             onChange={onChange}
-            required
             className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500"
         >
             {children}
@@ -51,10 +51,12 @@ const FormTextarea = ({ label, name, value, onChange, placeholder }) => (
     </div>
 );
 
+
 /**
- * Komponen untuk halaman registrasi khusus jalur Magister Reguler.
+ * Komponen untuk halaman registrasi Program Magister (S2).
  */
-const RegisterMagisterPage = ({ setCurrentPage }) => {
+const RegisterMagisterPage = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         nama: '',
         email: '',
@@ -62,6 +64,9 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
         jenisKelamin: '',
         nomorTelepon: '',
         sumberPendaftaran: '',
+        nomorBrosur: '',
+        namaPemberiRekomendasi: '',
+        nomorWaRekomendasi: '',
         password: '',
         konfirmPassword: '',
         agreePolicy: false,
@@ -97,6 +102,19 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
         setError('');
         setSuccessMessage('');
 
+        // Validasi frontend yang sudah benar dari iterasi sebelumnya
+        if (!formData.nama || !formData.email || !formData.password || !formData.konfirmPassword) {
+            setError("Nama, email, password, dan konfirmasi password wajib diisi.");
+            return;
+        }
+        if (formData.jenisKelamin === '') {
+            setError("Silakan pilih jenis kelamin.");
+            return;
+        }
+        if (formData.sumberPendaftaran === '') {
+            setError("Silakan pilih sumber pendaftaran.");
+            return;
+        }
         if (formData.password !== formData.konfirmPassword) {
             setError("Password dan konfirmasi password tidak cocok.");
             return;
@@ -108,6 +126,10 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
 
         setIsLoading(true);
 
+        // --- [DEBUGGING] ---
+        // Langkah 1: Menampilkan data yang akan dikirim ke console
+        console.log("Data to be sent to backend:", JSON.stringify(formData, null, 2));
+
         try {
             const response = await fetch('http://127.0.0.1:8000/api/register-magister', {
                 method: 'POST',
@@ -115,27 +137,29 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify({
-                    nama: formData.nama,
-                    email: formData.email,
-                    password: formData.password,
-                }),
+                body: JSON.stringify(formData),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                if (data.email) {
-                     throw new Error(data.email[0]);
+                // --- [DEBUGGING] ---
+                // Langkah 2: Menampilkan seluruh response error dari backend ke console
+                console.error("Backend returned an error:", data);
+                
+                if (data.errors) {
+                    // Membuat pesan error yang lebih detail
+                    const errorMessages = Object.values(data.errors).flat().join(' ');
+                    throw new Error(errorMessages);
                 }
                 throw new Error(data.message || 'Registrasi gagal.');
             }
 
-            setSuccessMessage('Registrasi Magister berhasil! Silakan login.');
-            setFormData({
-                nama: '', email: '', alamat: '', jenisKelamin: '', nomorTelepon: '',
-                sumberPendaftaran: '', password: '', konfirmPassword: '', agreePolicy: false,
-            });
+            setSuccessMessage('Registrasi berhasil! Anda akan diarahkan ke halaman login.');
+            
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
 
         } catch (err) {
             setError(err.message);
@@ -146,17 +170,17 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
 
     return (
         <div className="flex min-h-screen bg-gray-100">
-             <div className="hidden md:block md:w-1/2 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop')" }}>
+             <div className="hidden md:block md:w-1-2 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop')" }}>
                 <div className="flex flex-col justify-end h-full p-12 bg-black bg-opacity-50 text-white">
-                    <h2 className="text-4xl font-bold">Bergabunglah Bersama Kami</h2>
-                    <p className="text-lg mt-2">Buat akun Anda untuk memulai perjalanan pendidikan di ITATS.</p>
+                    <h2 className="text-4xl font-bold">Lanjutkan Studi Pascasarjana Anda</h2>
+                    <p className="text-lg mt-2">Buat akun untuk memulai perjalanan pendidikan magister di ITATS.</p>
                 </div>
             </div>
-            <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8">
+            <div className="w-full md:w-1-2 flex items-center justify-center p-4 md:p-8">
                 <div className="w-full max-w-lg bg-white p-8 rounded-lg shadow-lg overflow-y-auto" style={{ maxHeight: '95vh' }}>
                      <div className="text-center mb-6">
                         <img src="/images/logo_pmb_color.png" alt="Logo PMB" className="mx-auto mb-4 h-16" />
-                        <h1 className="text-2xl font-bold text-gray-800">Daftar Akun Baru (Magister Reguler)</h1>
+                        <h1 className="text-2xl font-bold text-gray-800">Daftar Akun Magister</h1>
                     </div>
                     
                     <form onSubmit={handleSubmit}>
@@ -183,15 +207,72 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
                             <option value="Laki-laki">Laki-laki</option>
                             <option value="Perempuan">Perempuan</option>
                         </FormSelect>
-                        <FormInputWithIcon icon={<FaPhone className="text-gray-400" />} label="Nomor Telepon" name="nomorTelepon" type="tel" value={formData.nomorTelepon} onChange={handleInputChange} placeholder="+62/0812345678" />
+                        <FormInputWithIcon icon={<FaPhone className="text-gray-400" />} label="Nomor Telepon" name="nomorTelepon" type="tel" value={formData.nomorTelepon} onChange={handleInputChange} placeholder="+62/0812345678" required={false} />
                         
                         <FormSelect label="Sumber Pendaftaran" name="sumberPendaftaran" value={formData.sumberPendaftaran} onChange={handleInputChange}>
                             <option value="">-- Mengenal ITATS dari ? --</option>
                             <option>Brosur</option>
                             <option>Pameran</option>
+                            <option>Sosialisasi/Kunjungan ITATS di Sekolah</option> 
                             <option>Instagram</option>
+                            <option>Facebook</option>
+                            <option>TikTok</option>
+                            <option>LinkedIn</option>
+                            <option>Youtube</option>
+                            <option>Whatsapp Blasting</option>
+                            <option>Website ITATS</option>
+                            <option>Guru BK</option>
+                            <option>Alumni ITATS</option>
+                            <option>Pameran yang diselenggarakan di ITATS</option>
+                            <option>Radio</option>
+                            <option>TV</option>
                             <option>Teman</option>
+                            <option>Tetangga/Saudara</option>
+                            <option>Dosen ITATS</option>
+                            <option>Mahasiswa ITATS</option>
+                            <option>Brosur (DIGITAL)</option>
+                            <option>Guru</option>
+                            <option>Pengasuh Pondok Pesantren</option>
+                            <option>Program Afirmasi Keluarga Wisudawan</option>
+                            <option>Affiliate</option>
                         </FormSelect>
+
+                        {formData.sumberPendaftaran === 'Brosur' && (
+                            <FormInputWithIcon 
+                                icon={<FaHashtag className="text-gray-400" />} 
+                                label="Nomor Brosur" 
+                                name="nomorBrosur" 
+                                type="text" 
+                                value={formData.nomorBrosur} 
+                                onChange={handleInputChange} 
+                                placeholder="Masukkan kode brosur..." 
+                                required={false}
+                            />
+                        )}
+                        {(formData.sumberPendaftaran === 'Guru BK' || formData.sumberPendaftaran === 'Alumni ITATS' || formData.sumberPendaftaran === 'Teman' || formData.sumberPendaftaran === 'Tetangga/Saudara' || formData.sumberPendaftaran === 'Dosen ITATS' || formData.sumberPendaftaran === 'Mahasiswa ITATS' || formData.sumberPendaftaran === 'Brosur (DIGITAL)' || formData.sumberPendaftaran === 'Guru' || formData.sumberPendaftaran === 'Pengasuh Pondok Pesantren' || formData.sumberPendaftaran === 'Program Afirmasi Keluarga Wisudawan' || formData.sumberPendaftaran === 'Affiliate') && (
+                            <>
+                                <FormInputWithIcon 
+                                    icon={<FaUser className="text-gray-400" />} 
+                                    label="Nama Pemberi Rekomendasi" 
+                                    name="namaPemberiRekomendasi" 
+                                    type="text" 
+                                    value={formData.namaPemberiRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nama pemberi rekomendasi..." 
+                                    required={false}
+                                />
+                                <FormInputWithIcon 
+                                    icon={<FaPhone className="text-gray-400" />} 
+                                    label="Nomor WA Pemberi Rekomendasi" 
+                                    name="nomorWaRekomendasi" 
+                                    type="tel" 
+                                    value={formData.nomorWaRekomendasi} 
+                                    onChange={handleInputChange} 
+                                    placeholder="Masukkan nomor WA..." 
+                                    required={false}
+                                />
+                            </>
+                        )}
 
                         <div className="mb-4">
                             <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
@@ -209,7 +290,6 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
                                 </label>
                             </div>
                         </div>
-
                          <div className="mb-6">
                             <label className="block text-gray-700 text-sm font-bold mb-2">Konfirm Password</label>
                             <div className="relative">
@@ -241,14 +321,14 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
                         </div>
 
                         <div className="flex justify-between items-center">
-                            <a href="#" onClick={() => setCurrentPage('login')} className="text-sm text-blue-600 hover:underline">Sudah Punya Akun? Login disini</a>
+                            <Link to="/login" className="text-sm text-blue-600 hover:underline">Sudah Punya Akun? Login disini</Link>
                             <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled={isLoading}>
                                 {isLoading ? 'Mendaftar...' : 'Daftar'}
                             </button>
                         </div>
                     </form>
                     <div className="text-center mt-6">
-                        <a href="#" onClick={() => setCurrentPage('home')} className="text-sm text-blue-600 hover:underline">Back To Home</a>
+                        <Link to="/" className="text-sm text-blue-600 hover:underline">Back To Home</Link>
                         <p className="text-xs text-gray-400 mt-4">Copyright © 2021 PSI Institut Teknologi Adhi Tama Surabaya 2023</p>
                     </div>
                 </div>
@@ -258,3 +338,4 @@ const RegisterMagisterPage = ({ setCurrentPage }) => {
 };
 
 export default RegisterMagisterPage;
+

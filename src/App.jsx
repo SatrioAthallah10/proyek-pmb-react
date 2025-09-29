@@ -9,8 +9,11 @@ import RegisterMagisterRplPage from './pages/RegisterMagisterRplPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import DashboardRplPage from './pages/DashboardRplPage.jsx';
 import DashboardMagisterPage from './pages/DashboardMagisterPage.jsx';
+// --- [PENAMBAHAN] ---
+// Mengimpor komponen dashboard baru untuk Magister RPL.
+import DashboardMagisterRpl from './pages/DashboardMagisterRpl.jsx';
 import AdminPage from './pages/AdminPage.jsx';
-import ProtectedRoute from './utils/ProtectedRoute.jsx'; 
+import ProtectedRoute from './utils/ProtectedRoute.jsx';
 import PublicLayout from './components/PublicLayout.jsx';
 
 function App() {
@@ -19,13 +22,13 @@ function App() {
     <Router>
       <Routes>
         {/* Rute Publik dengan Layout */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <PublicLayout>
               <HomePage />
             </PublicLayout>
-          } 
+          }
         />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -36,12 +39,13 @@ function App() {
         {/* Grup Rute Terproteksi untuk User Biasa */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          {/* Tambahkan rute baru untuk dasbor RPL di sini */}
           <Route path="/dashboard-rpl" element={<DashboardRplPage />} />
           <Route path="/dashboard-magister" element={<DashboardMagisterPage />} />
-          {/* Tambahkan rute dashboard lainnya di sini jika ada */}
+          {/* --- [PENAMBAHAN] --- */}
+          {/* Menambahkan rute baru untuk dasbor Magister RPL */}
+          <Route path="/dashboard-magister-rpl" element={<DashboardMagisterRpl />} />
         </Route>
-        
+
         {/* Grup Rute Terproteksi khusus untuk Admin */}
         {/* Mengubah prop menjadi isAdminRoute untuk kejelasan */}
         <Route element={<ProtectedRoute isAdminRoute={true} />}>
@@ -54,4 +58,3 @@ function App() {
 }
 
 export default App;
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DashboardNav from '../components/dashboard/DashboardNav';
@@ -11,108 +11,100 @@ import KonfirmasiDaftarUlangView from '../components/dashboard/KonfirmasiDaftarU
 import NPMView from '../components/dashboard/NPMView';
 
 const DashboardRplPage = () => {
-    // State 'activeView' akan ditentukan setelah data berhasil dimuat
-    const [activeView, setActiveView] = useState(null); 
+    const [activeView, setActiveView] = useState('data-diri');
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // --- [PERBAIKAN UTAMA: Pola Pengambilan Data yang Aman] ---
+    const fetchStatus = useCallback(async () => {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError("Sesi tidak valid. Silakan login kembali.");
+            setLoading(false);
+            return;
+        }
+        try {
+            const response = await axios.get('http://localhost:8000/api/registration-status', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                },
+            });
+            const data = response.data;
+            setDashboardData(data);
+
+            // --- [LOGIKA KUNCI YANG DIPERBAIKI DAN DISELARASKAN] ---
+            if (!data.user.formulir_pendaftaran_completed) {
+                setActiveView('pendaftaran-awal');
+            } else if (!data.user.pembayaran_form_completed) {
+                setActiveView('konfirmasi-pembayaran');
+            } else if (!data.user.tes_seleksi_completed) {
+                setActiveView('tes-seleksi');
+            } else if (!data.user.pembayaran_daful_completed) {
+                setActiveView('konfirmasi-daftar-ulang');
+            } else {
+                setActiveView('data-diri');
+            }
+
+        } catch (err) {
+            console.error("Error fetching registration status:", err);
+            setError("Gagal memuat data dasbor. Silakan coba lagi.");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     useEffect(() => {
-        // Definisikan fungsi async di dalam useEffect
-        const fetchStatus = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                setError("Sesi tidak valid. Silakan login kembali.");
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const response = await axios.get('http://localhost:8000/api/registration-status', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
-                    },
-                });
-
-                setDashboardData(response.data);
-
-                // Tentukan tampilan awal berdasarkan status pengguna setelah data diterima
-                const status = response.data.user.status_pendaftaran;
-                if (status === 'mengisi_formulir_awal') {
-                    setActiveView('pendaftaran-awal');
-                } else {
-                    // Tampilan default jika pengguna sudah melewati tahap awal
-                    setActiveView('data-diri'); 
-                }
-
-            } catch (err) {
-                console.error("Error fetching registration status:", err);
-                setError("Gagal memuat data dasbor. Silakan coba lagi.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        // Panggil fungsi tersebut
         fetchStatus();
-    }, []); // <-- Dependency array kosong, memastikan ini hanya berjalan SATU KALI
+    }, [fetchStatus]);
 
-    // Kondisi loading yang lebih sederhana dan aman
     if (loading) {
-        return <div className="flex justify-center items-center min-h-screen bg-gray-100"><p>Memuat data dasbor...</p></div>;
+        return <div className="flex justify-center items-center min-h-screen">Memuat data dasbor...</div>;
     }
-    
+
     if (error || !dashboardData) {
-        return <div className="flex justify-center items-center min-h-screen bg-gray-100 text-red-600"><p>{error || "Data tidak dapat dimuat."}</p></div>;
+        return <div className="flex justify-center items-center min-h-screen text-red-500">{error || "Data tidak dapat dimuat."}</div>;
     }
 
     const { user, timeline: timelineData } = dashboardData;
 
+    // --- [PERBAIKAN UTAMA DI SINI] ---
+    // Pastikan `isTesLulus` dan `isPembayaranDafulCompleted` diekstrak langsung dari objek `user`.
+    // Ini adalah cara yang sama seperti di DashboardPage.jsx.
     const isTesLulus = user?.tes_seleksi_completed;
     const isPembayaranDafulCompleted = user?.pembayaran_daful_completed;
 
     const renderView = () => {
-        const refetchUserData = async () => {
-            setLoading(true);
-            const token = localStorage.getItem('token');
-            try {
-                 const response = await axios.get('http://localhost:8000/api/registration-status', {
-                    headers: { 'Authorization': `Bearer ${token}` },
-                });
-                setDashboardData(response.data);
-            } catch (e) {
-                setError("Gagal memuat ulang data.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        
-        const commonProps = { user, refetchUserData, setActiveView };
-        const rplProps = { ...commonProps, isRpl: true };
-
-        // Jika activeView belum ditentukan, jangan render apa-apa untuk menghindari error
-        if (!activeView) return null;
+        const commonProps = { userData: user, refetchUserData: fetchStatus };
+        const rplProps = { ...commonProps, isRpl: true, setActiveView };
 
         switch (activeView) {
-            case 'pendaftaran-awal': return <PendaftaranAwalView {...rplProps} />;
-            case 'konfirmasi-pembayaran': return <KonfirmasiPembayaranView {...rplProps} />;
-            case 'tes-seleksi': return <TesSeleksiView {...rplProps} />;
-            case 'soal-tes': return <SoalTesView {...rplProps} />;
-            case 'hasil-tes': return <HasilTesView {...commonProps} />;
+            case 'pendaftaran-awal':
+                return <PendaftaranAwalView {...rplProps} />;
+            case 'konfirmasi-pembayaran':
+                return <KonfirmasiPembayaranView {...rplProps} />;
+            case 'tes-seleksi':
+                return <TesSeleksiView {...rplProps} />;
+            case 'soal-tes':
+                return <SoalTesView {...rplProps} />;
+            case 'hasil-tes':
+                return <HasilTesView user={user} />;
             case 'konfirmasi-daftar-ulang':
-                 return isTesLulus 
-                    ? <KonfirmasiDaftarUlangView {...rplProps} />
+                return isTesLulus 
+                    ? <KonfirmasiDaftarUlangView user={user} refetchUserData={fetchStatus} isRpl={true} />
                     : <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus dinyatakan lulus Tes Seleksi terlebih dahulu.</p></div>;
             case 'daftar-ulang':
                 return isPembayaranDafulCompleted
-                    ? <DaftarUlangView {...rplProps} />
+                    ? <DaftarUlangView user={user} isRpl={true} />
                     : <div className="bg-white p-8 rounded-lg shadow-md text-center"><h2 className="text-2xl font-bold text-red-600">Akses Ditolak</h2><p>Anda harus menyelesaikan proses Pembayaran Daftar Ulang terlebih dahulu.</p></div>;
-            case 'npm': return <NPMView />;
-            case 'ktm': return <KtmView />;
+            case 'npm':
+                return <NPMView />;
+            case 'ktm':
+                return <KtmView />;
             case 'data-diri':
-            default: return <DataDiriView />;
+            default:
+                return <DataDiriView />;
         }
     };
 

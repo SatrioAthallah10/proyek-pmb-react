@@ -27,28 +27,43 @@ const LoginPage = () => {
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(user));
 
+        let dashboardPath = '/'; // Path default
         const adminRoles = ['admin', 'kepala_bagian', 'staff', 'owner'];
         
         if (user.role && adminRoles.includes(user.role)) {
-          navigate('/admin');
+          dashboardPath = '/admin';
         } else {
           // --- [PERBAIKAN LOGIKA PENGALIHAN DI SINI] ---
+          // Menyesuaikan case dengan nilai string yang dikirim dari backend
           switch (user.jalur_pendaftaran) {
-            case 'Sarjana RPL': // Dikembalikan ke nilai yang benar sesuai backend
-              navigate('/dashboard-rpl');
+            case 'rpl':
+            case 'Sarjana RPL': // Menambahkan case untuk format dari backend lama
+              dashboardPath = '/dashboard-rpl';
               break;
             case 'magister-reguler':
-              navigate('/dashboard-magister');
+            case 'Magister Reguler': // Menambahkan case untuk format dari backend
+              dashboardPath = '/dashboard-magister';
               break;
             case 'magister-rpl':
-              navigate('/dashboard-magister');
+            case 'Magister RPL': // Menambahkan case untuk format dari backend
+              dashboardPath = '/dashboard-magister-rpl';
               break;
-            case 'Sarjana Reguler':
+            case 'reguler':
+            case 'Sarjana Reguler': // Menambahkan case untuk format dari backend lama
             default:
-              navigate('/dashboard');
+              dashboardPath = '/dashboard';
               break;
           }
         }
+
+        // --- [FUNGSI DEBUG DITAMBAHKAN DI SINI] ---
+        // Tampilkan tujuan di console untuk debugging
+        console.log('Login successful. User role:', user.role, 'Jalur:', user.jalur_pendaftaran);
+        console.log('Redirecting to:', dashboardPath);
+        // --- [FUNGSI DEBUG SELESAI DI SINI] ---
+
+        navigate(dashboardPath);
+
       } else {
         throw new Error('Respons login tidak valid dari server.');
       }
@@ -129,3 +144,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

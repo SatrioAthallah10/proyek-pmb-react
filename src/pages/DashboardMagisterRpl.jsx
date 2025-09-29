@@ -11,10 +11,10 @@ import KonfirmasiDaftarUlangView from '../components/dashboard/KonfirmasiDaftarU
 import NPMView from '../components/dashboard/NPMView.jsx';
 
 /**
- * Komponen Dashboard untuk mahasiswa jalur Magister Reguler.
+ * Komponen Dashboard untuk mahasiswa jalur Magister RPL.
  * Dibuat berdasarkan template DashboardPage.jsx.
  */
-const DashboardMagisterPage = () => {
+const DashboardMagisterRplPage = () => {
     const [activeView, setActiveView] = useState('data-diri');
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -22,7 +22,6 @@ const DashboardMagisterPage = () => {
 
     const fetchStatus = useCallback(async () => {
         setLoading(true);
-        // Menggunakan 'token' yang disimpan saat login
         const token = localStorage.getItem('token');
         if (!token) {
             setError("Sesi tidak valid. Silakan login kembali.");
@@ -50,7 +49,7 @@ const DashboardMagisterPage = () => {
     }, [fetchStatus]);
 
     if (loading) {
-        return <div className="flex justify-center items-center min-h-screen bg-gray-100"><p>Memuat data dasbor Magister...</p></div>;
+        return <div className="flex justify-center items-center min-h-screen bg-gray-100"><p>Memuat data dasbor Magister RPL...</p></div>;
     }
     
     if (error || !dashboardData) {
@@ -63,12 +62,13 @@ const DashboardMagisterPage = () => {
     const isPembayaranDafulCompleted = user?.pembayaran_daful_completed;
 
     const renderView = () => {
-        // Menambahkan prop isMagister untuk membedakan dengan jalur lain jika diperlukan
+        // Menambahkan prop isMagister dan isRpl untuk membedakan jika diperlukan
         const commonProps = { 
             user, 
             refetchUserData: fetchStatus, 
             setActiveView,
-            isMagister: true 
+            isMagister: true,
+            isRpl: true
         };
 
         switch (activeView) {
@@ -121,4 +121,4 @@ const DashboardMagisterPage = () => {
     );
 };
 
-export default DashboardMagisterPage;
+export default DashboardMagisterRplPage;
